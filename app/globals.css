@@ -37,7 +37,6 @@ button {
 }
 
 .hero-card,
-.control-panel,
 .month-card,
 .stat-card {
   border: 1px solid rgba(148, 163, 184, 0.22);
@@ -87,8 +86,8 @@ h1 {
 }
 
 .stat-card span,
-.selected-card span,
-.month-card header span {
+.month-card header span,
+.popover-header span {
   color: #64748b;
   font-size: 0.84rem;
   font-weight: 700;
@@ -100,33 +99,6 @@ h1 {
   color: #0f172a;
   font-size: 2rem;
   letter-spacing: -0.04em;
-}
-
-.control-panel {
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 18px;
-  align-items: center;
-  border-radius: 28px;
-  padding: 18px;
-  margin-bottom: 18px;
-}
-
-.selected-card {
-  padding: 18px;
-}
-
-.selected-card strong {
-  display: block;
-  margin-top: 8px;
-  color: #0f172a;
-  font-size: 1.2rem;
-}
-
-.selected-card p {
-  margin: 8px 0 0;
-  color: #64748b;
-  font-size: 0.9rem;
 }
 
 .muscle-picker,
@@ -157,6 +129,11 @@ h1 {
   padding: 11px 14px;
 }
 
+.muscle-picker.compact button {
+  padding: 8px 10px;
+  font-size: 0.88rem;
+}
+
 .filters button {
   padding: 9px 13px;
   font-size: 0.92rem;
@@ -176,17 +153,13 @@ h1 {
 }
 
 .muscle-picker button:disabled,
-.remove-button:disabled {
+.popover-remove:disabled {
   cursor: not-allowed;
   opacity: 0.45;
 }
 
-.remove-button {
-  color: #b91c1c !important;
-}
-
 .filters {
-  margin: 0 0 20px;
+  margin: 4px 0 20px;
 }
 
 .calendar-grid {
@@ -235,10 +208,18 @@ h1 {
   min-width: 0;
 }
 
+.day-cell {
+  position: relative;
+  min-width: 0;
+  aspect-ratio: 1;
+}
+
 .day {
   position: relative;
   display: grid;
   place-items: center;
+  width: 100%;
+  height: 100%;
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 14px;
   background: rgba(248, 250, 252, 0.86);
@@ -288,9 +269,91 @@ h1 {
   opacity: 0.35;
 }
 
+.checkin-popover {
+  position: absolute;
+  top: 50%;
+  z-index: 20;
+  width: min(320px, 78vw);
+  padding: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+  backdrop-filter: blur(18px);
+}
+
+.checkin-popover::before {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  border-left: 1px solid rgba(148, 163, 184, 0.24);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.24);
+  background: rgba(255, 255, 255, 0.96);
+  content: "";
+}
+
+.popover-right {
+  left: calc(100% + 12px);
+  transform: translateY(-50%);
+}
+
+.popover-right::before {
+  left: -8px;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.popover-left {
+  right: calc(100% + 12px);
+  transform: translateY(-50%);
+}
+
+.popover-left::before {
+  right: -8px;
+  transform: translateY(-50%) rotate(225deg);
+}
+
+.popover-header {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.popover-header strong {
+  display: block;
+  margin-top: 4px;
+  color: #0f172a;
+  font-size: 1rem;
+  letter-spacing: -0.03em;
+}
+
+.close-popover {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.popover-remove {
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 999px;
+  background: rgba(254, 242, 242, 0.72);
+  color: #b91c1c;
+  cursor: pointer;
+}
+
 @media (max-width: 1050px) {
-  .hero,
-  .control-panel {
+  .hero {
     grid-template-columns: 1fr;
   }
 
@@ -305,7 +368,6 @@ h1 {
   }
 
   .hero-card,
-  .control-panel,
   .month-card,
   .stat-card {
     border-radius: 22px;
@@ -321,5 +383,16 @@ h1 {
 
   .day {
     border-radius: 12px;
+  }
+
+  .checkin-popover {
+    position: fixed;
+    inset: auto 14px 18px;
+    width: auto;
+    transform: none;
+  }
+
+  .checkin-popover::before {
+    display: none;
   }
 }

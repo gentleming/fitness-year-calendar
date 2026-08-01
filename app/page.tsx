@@ -53,6 +53,7 @@ export default function Home() {
   const todayIso = isoDate(new Date());
   const [checkins, setCheckins] = useState<Checkins>({});
   const [selectedDate, setSelectedDate] = useState(todayIso);
+  const [openDate, setOpenDate] = useState<string | null>(null);
   const [filter, setFilter] = useState("all");
 
   useEffect(() => {
@@ -78,9 +79,6 @@ export default function Home() {
   );
 
   const totalWorkoutDays = Object.keys(checkins).length;
-  const selectedCheckin = checkins[selectedDate];
-  const selectedDateObject = new Date(`${selectedDate}T12:00:00`);
-  const canEditSelected = selectedDate <= todayIso;
 
   const mostUsedGroup = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -95,6 +93,7 @@ export default function Home() {
   function toggleCheckin(dateIso: string, group = "default") {
     if (dateIso > todayIso) return;
     setSelectedDate(dateIso);
+    setOpenDate(dateIso);
     setCheckins((current) => {
       const next = { ...current };
       if (group === "remove" || next[dateIso]?.group === group) {
@@ -107,12 +106,12 @@ export default function Home() {
   }
 
   function setSelectedGroup(group: string) {
-    if (!canEditSelected) return;
+    if (!openDate || openDate > todayIso) return;
     setCheckins((current) => ({
       ...current,
-      [selectedDate]: {
+      [openDate]: {
         group,
-        checkedAt: current[selectedDate]?.checkedAt ?? new Date().toISOString(),
+        checkedAt: current[openDate]?.checkedAt ?? new Date().toISOString(),
       },
     }));
   }
@@ -138,35 +137,6 @@ export default function Home() {
           <Stat label="今年已健身" value={`${totalWorkoutDays} 天`} />
           <Stat label="完成率" value={`${Math.round((totalWorkoutDays / days.length) * 100)}%`} />
           <Stat label="高频训练" value={mostUsedGroup ? `${mostUsedGroup.label} · ${mostUsedGroup.count}` : "暂无"} />
-        </div>
-      </section>
-
-      <section className="control-panel">
-        <div className="selected-card">
-          <span>当前选择</span>
-          <strong>{formatChineseDate(selectedDateObject)}</strong>
-          <p>{canEditSelected ? "可打卡或调整训练部位" : "未来日期暂不可打卡"}</p>
-        </div>
-        <div className="muscle-picker" aria-label="训练部位选择">
-          {muscleGroups.map((group) => {
-            const active = selectedCheckin?.group === group.id;
-            return (
-              <button
-                key={group.id}
-                className={active ? "active" : ""}
-                style={{ "--group-color": group.color } as CSSProperties}
-                onClick={() => setSelectedGroup(group.id)}
-                disabled={!canEditSelected}
-              >
-                <span aria-hidden="true">{group.icon}</span>
-                {group.label}
-              </button>
-            );
-          })}
-          <button className="remove-button" onClick={() => toggleCheckin(selectedDate, "remove")} disabled={!selectedCheckin}>
-            <span aria-hidden="true">×</span>
-            取消打卡
-          </button>
         </div>
       </section>
 
@@ -207,18 +177,65 @@ export default function Home() {
                 const group = groupMap[entry?.group ?? "default"];
                 const isFuture = dateIso > todayIso;
                 const isSelected = dateIso === selectedDate;
+                const isPopoverOpen = openDate === dateIso;
+                const dateObject = new Date(`${dateIso}T12:00:00`);
+                const popoverSide = date.getDay() === 0 || date.getDay() === 6 ? "popover-left" : "popover-right";
                 return (
-                  <button
-                    key={dateIso}
-                    className={`day ${entry ? "checked" : ""} ${isFuture ? "future" : ""} ${isSelected ? "selected" : ""}`}
-                    style={{ "--group-color": group.color } as CSSProperties}
-                    onClick={() => (entry ? setSelectedDate(dateIso) : toggleCheckin(dateIso))}
-                    title={`${formatChineseDate(date)}${entry ? ` · ${group.label}` : ""}`}
-                    disabled={isFuture}
-                  >
-                    <span className="day-number">{date.getDate()}</span>
-                    {entry && <span className="day-icon">{group.icon}</span>}
-                  </button>
+                  <div className="day-cell" key={dateIso}>
+                    <button
+                      className={`day ${entry ? "checked" : ""} ${isFuture ? "future" : ""} ${isSelected ? "selected" : ""}`}
+                      style={{ "--group-color": group.color } as CSSProperties}
+                      onClick={() => {
+                        setSelectedDate(dateIso);
+                        setOpenDate(dateIso);
+                      }}
+                      title={`${formatChineseDate(date)}${entry ? ` · ${group.label}` : ""}`}
+                      disabled={isFuture}
+                    >
+                      <span className="day-number">{date.getDate()}</span>
+                      {entry && <span className="day-icon">{group.icon}</span>}
+                    </button>
+                    {isPopoverOpen && (
+                      <div
+                        className={`checkin-popover ${popoverSide}`}
+                        role="dialog"
+                        aria-label={`${formatChineseDate(dateObject)} 健身打卡`}
+                      >
+                        <div className="popover-header">
+                          <div>
+                            <span>选择日期</span>
+                            <strong>{formatChineseDate(dateObject)}</strong>
+                          </div>
+                          <button className="close-popover" onClick={() => setOpenDate(null)} aria-label="关闭">
+                            ×
+                          </button>
+                        </div>
+                        <div className="muscle-picker compact" aria-label="训练部位选择">
+                          {muscleGroups.map((muscleGroup) => {
+                            const active = entry?.group === muscleGroup.id;
+                            return (
+                              <button
+                                key={muscleGroup.id}
+                                className={active ? "active" : ""}
+                                style={{ "--group-color": muscleGroup.color } as CSSProperties}
+                                onClick={() => setSelectedGroup(muscleGroup.id)}
+                              >
+                                <span aria-hidden="true">{muscleGroup.icon}</span>
+                                {muscleGroup.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <button
+                          className="popover-remove"
+                          onClick={() => toggleCheckin(dateIso, "remove")}
+                          disabled={!entry}
+                        >
+                          取消打卡
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </div>
