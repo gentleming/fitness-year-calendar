@@ -252,8 +252,7 @@ h1 {
 
 .day.checked {
   border-color: color-mix(in srgb, var(--group-color) 38%, white);
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--group-color) 18%, white), rgba(255, 255, 255, 0.88));
+  background: color-mix(in srgb, var(--group-color) 16%, white);
   color: var(--group-color);
 }
 
