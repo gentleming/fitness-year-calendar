@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "年度健身日历",
+  title: "2026 Fitness Calendar",
   description: "一个简约现代的年度健身打卡日历，可按日期和训练部位记录今年的运动情况。",
   icons: {
     icon: "/favicon.svg",

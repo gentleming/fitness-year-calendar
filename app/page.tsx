@@ -80,16 +80,6 @@ export default function Home() {
 
   const totalWorkoutDays = Object.keys(checkins).length;
 
-  const mostUsedGroup = useMemo(() => {
-    const counts: Record<string, number> = {};
-    Object.values(checkins).forEach((entry) => {
-      const group = entry?.group ?? "default";
-      counts[group] = (counts[group] ?? 0) + 1;
-    });
-    const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
-    return top ? { ...groupMap[top[0]], count: top[1] } : null;
-  }, [checkins]);
-
   function toggleCheckin(dateIso: string, group = "default") {
     if (dateIso > todayIso) return;
     setSelectedDate(dateIso);
@@ -129,14 +119,13 @@ export default function Home() {
     <main className="app-shell">
       <section className="hero">
         <div className="hero-card">
-          <p className="eyebrow">{currentYear} Fitness Calendar</p>
-          <h1>年度健身日历</h1>
-          <p className="hero-copy">选择今天或过去任意一天完成健身打卡，并记录训练部位。数据保存在当前浏览器本地。</p>
+          <h1>
+            <span>{currentYear}</span>
+            <span>Fitness Calendar</span>
+          </h1>
         </div>
         <div className="stats-grid">
           <Stat label="今年已健身" value={`${totalWorkoutDays} 天`} />
-          <Stat label="完成率" value={`${Math.round((totalWorkoutDays / days.length) * 100)}%`} />
-          <Stat label="高频训练" value={mostUsedGroup ? `${mostUsedGroup.label} · ${mostUsedGroup.count}` : "暂无"} />
         </div>
       </section>
 
