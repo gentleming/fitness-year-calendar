@@ -169,8 +169,14 @@ h1 {
 }
 
 .month-card {
+  position: relative;
+  z-index: 1;
   border-radius: 22px;
   padding: 13px;
+}
+
+.month-card.popover-active {
+  z-index: 80;
 }
 
 .month-card header {
@@ -210,8 +216,13 @@ h1 {
 
 .day-cell {
   position: relative;
+  z-index: 1;
   min-width: 0;
   aspect-ratio: 1;
+}
+
+.day-cell:has(.checkin-popover) {
+  z-index: 90;
 }
 
 .day {
@@ -272,7 +283,7 @@ h1 {
 .checkin-popover {
   position: absolute;
   top: 50%;
-  z-index: 20;
+  z-index: 100;
   width: min(320px, 78vw);
   padding: 16px;
   border: 1px solid rgba(148, 163, 184, 0.24);

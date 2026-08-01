@@ -155,23 +155,28 @@ export default function Home() {
       </section>
 
       <section className="calendar-grid">
-        {visibleMonths.map((month, monthIndex) => (
-          <article className="month-card" key={month.label}>
-            <header>
-              <h2>{month.label}</h2>
-              <span>{months[monthIndex].days.filter((date) => checkins[isoDate(date)]).length} 天</span>
-            </header>
-            <div className="weekdays">
-              {weekdayLabels.map((day) => (
-                <span key={day}>{day}</span>
-              ))}
-            </div>
-            <div className="days">
-              {filter === "all" &&
-                Array.from({ length: (months[monthIndex].days[0].getDay() + 6) % 7 }).map((_, index) => (
-                  <span className="empty-day" key={`empty-${index}`} />
+        {visibleMonths.map((month, monthIndex) => {
+          const monthHasOpenPopover = openDate
+            ? months[monthIndex].days.some((date) => isoDate(date) === openDate)
+            : false;
+
+          return (
+            <article className={`month-card ${monthHasOpenPopover ? "popover-active" : ""}`} key={month.label}>
+              <header>
+                <h2>{month.label}</h2>
+                <span>{months[monthIndex].days.filter((date) => checkins[isoDate(date)]).length} 天</span>
+              </header>
+              <div className="weekdays">
+                {weekdayLabels.map((day) => (
+                  <span key={day}>{day}</span>
                 ))}
-              {month.days.map((date) => {
+              </div>
+              <div className="days">
+                {filter === "all" &&
+                  Array.from({ length: (months[monthIndex].days[0].getDay() + 6) % 7 }).map((_, index) => (
+                    <span className="empty-day" key={`empty-${index}`} />
+                  ))}
+                {month.days.map((date) => {
                 const dateIso = isoDate(date);
                 const entry = checkins[dateIso];
                 const group = groupMap[entry?.group ?? "default"];
@@ -237,10 +242,11 @@ export default function Home() {
                     )}
                   </div>
                 );
-              })}
-            </div>
-          </article>
-        ))}
+                })}
+              </div>
+            </article>
+          );
+        })}
       </section>
     </main>
   );
