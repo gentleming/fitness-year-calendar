@@ -3,7 +3,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-const launchYear = 2026;
+const launchYear = 2025;
 const actualYear = new Date().getFullYear();
 const languageStorageKey = "fitness-calendar-language";
 
@@ -454,12 +454,14 @@ export default function Home() {
   return (
     <main className="app-shell">
       <section className="toolbar" aria-label={text.calendarActions}>
-        <div className="year-switcher" aria-label={text.yearSelector}>
-          {yearOptions.map((year) => (
-            <button key={year} className={viewYear === year ? "selected" : ""} onClick={() => setViewYear(year)}>
-              {year}
-            </button>
-          ))}
+        <div className="year-switcher">
+          <select aria-label={text.yearSelector} value={viewYear} onChange={(event) => setViewYear(Number(event.target.value))}>
+            {yearOptions.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="toolbar-actions">
           <div className="data-menu" ref={dataMenuRef}>

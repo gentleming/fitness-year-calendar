@@ -82,13 +82,7 @@ button {
   display: none;
 }
 
-.year-switcher {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.year-switcher button,
+.year-switcher select,
 .utility-button,
 .share-button {
   border: 1px solid rgba(148, 163, 184, 0.24);
@@ -105,8 +99,20 @@ button {
     color 160ms ease;
 }
 
-.year-switcher button {
-  padding: 7px 12px;
+.year-switcher select {
+  appearance: none;
+  min-width: 94px;
+  padding: 8px 34px 8px 14px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 52%,
+    calc(100% - 13px) 52%;
+  background-size:
+    5px 5px,
+    5px 5px;
+  background-repeat: no-repeat;
 }
 
 .utility-button,
@@ -114,14 +120,14 @@ button {
   padding: 8px 14px;
 }
 
-.year-switcher button:hover,
+.year-switcher select:hover,
 .utility-button:hover,
 .share-button:hover:not(:disabled) {
   transform: translateY(-1px);
   border-color: rgba(37, 99, 235, 0.35);
 }
 
-.year-switcher button.selected,
+.year-switcher select,
 .utility-button,
 .share-button {
   border-color: rgba(96, 165, 250, 0.52);
