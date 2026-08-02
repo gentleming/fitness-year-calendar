@@ -119,6 +119,23 @@ button {
   box-shadow: none;
 }
 
+.share-capture.exporting .day-icon .muscle-icon {
+  width: 1.18em;
+  height: 1.18em;
+}
+
+.share-capture.exporting .day.count-1 .day-icon {
+  font-size: 1rem;
+}
+
+.share-capture.exporting .day.count-2 .day-icon {
+  font-size: 0.84rem;
+}
+
+.share-capture.exporting .day.count-3 .day-icon {
+  font-size: 0.74rem;
+}
+
 .hero {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(220px, 0.32fr);
@@ -596,6 +613,28 @@ h1 {
 
   .share-button {
     flex: 0 0 auto;
+  }
+
+  .share-capture.exporting {
+    width: 390px;
+    padding: 20px;
+  }
+
+  .share-capture.exporting .day-icon .muscle-icon {
+    width: 1.34em;
+    height: 1.34em;
+  }
+
+  .share-capture.exporting .day.count-1 .day-icon {
+    font-size: 1.12rem;
+  }
+
+  .share-capture.exporting .day.count-2 .day-icon {
+    font-size: 0.94rem;
+  }
+
+  .share-capture.exporting .day.count-3 .day-icon {
+    font-size: 0.82rem;
   }
 
   .month-card,
