@@ -195,6 +195,15 @@ export default function Home() {
                       onClick={() => {
                         setSelectedDate(dateIso);
                         setOpenDate(dateIso);
+                        if (!entry) {
+                          setCheckins((current) => ({
+                            ...current,
+                            [dateIso]: {
+                              group: "default",
+                              checkedAt: new Date().toISOString(),
+                            },
+                          }));
+                        }
                       }}
                       title={`${formatChineseDate(date)}${entry ? ` · ${group.label}` : ""}`}
                       disabled={isFuture}

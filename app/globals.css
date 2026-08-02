@@ -256,6 +256,10 @@ h1 {
   color: var(--group-color);
 }
 
+.day.checked .day-number {
+  display: none;
+}
+
 .day.selected {
   outline: 3px solid rgba(37, 99, 235, 0.18);
   border-color: rgba(37, 99, 235, 0.58);
