@@ -178,7 +178,7 @@ h1 {
 
 .stat-card {
   border-radius: 22px;
-  padding: 18px;
+  padding: 22px;
 }
 
 .stat-card span,
@@ -194,7 +194,7 @@ h1 {
   flex-wrap: wrap;
   gap: 0.28em;
   align-items: baseline;
-  margin-top: 6px;
+  margin: 0;
   color: #0f172a;
   font-size: 1.55rem;
   letter-spacing: -0.04em;
