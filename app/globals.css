@@ -615,6 +615,23 @@ h1 {
     border-radius: 9px;
   }
 
+  .day-icon .muscle-icon {
+    width: 1.22em;
+    height: 1.22em;
+  }
+
+  .day.count-1 .day-icon {
+    font-size: 1rem;
+  }
+
+  .day.count-2 .day-icon {
+    font-size: 0.82rem;
+  }
+
+  .day.count-3 .day-icon {
+    font-size: 0.72rem;
+  }
+
   .checkin-popover {
     position: fixed;
     inset: auto 14px 18px;
