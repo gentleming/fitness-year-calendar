@@ -264,14 +264,82 @@ h1 {
 }
 
 .day-icon {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--icon-color, var(--group-color)) 16%, white);
+  color: var(--icon-color, var(--group-color));
   font-size: 0.84rem;
   line-height: 1;
+}
+
+.day-icons {
+  display: grid;
+  width: 78%;
+  height: 78%;
+  gap: 2px;
+}
+
+.day.count-1 .day-icons {
+  place-items: center;
+}
+
+.day.count-1 .day-icon {
+  width: 72%;
+  height: 72%;
+  font-size: 0.9rem;
+}
+
+.day.count-2 {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--slot-1) 16%, white) 0 50%, color-mix(in srgb, var(--slot-2) 16%, white) 50% 100%);
+}
+
+.day.count-2 .day-icons {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: center;
+}
+
+.day.count-2 .day-icon {
+  height: 72%;
+  background: rgba(255, 255, 255, 0.44);
+  font-size: 0.72rem;
+}
+
+.day.count-3 {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--slot-1) 16%, white) 0 50%, color-mix(in srgb, var(--slot-2) 16%, white) 50% 100%);
+}
+
+.day.count-3 .day-icons {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+.day.count-3 .day-icon {
+  background: rgba(255, 255, 255, 0.5);
+  font-size: 0.62rem;
+}
+
+.day.count-3 .day-icon:nth-child(3) {
+  grid-column: 1 / -1;
+  width: 50%;
+  justify-self: center;
+  background: color-mix(in srgb, var(--slot-3) 16%, white);
 }
 
 .day.checked {
   border-color: color-mix(in srgb, var(--group-color) 38%, white);
   background: color-mix(in srgb, var(--group-color) 16%, white);
   color: var(--group-color);
+}
+
+.day.checked.count-2 {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--slot-1) 16%, white) 0 50%, color-mix(in srgb, var(--slot-2) 16%, white) 50% 100%);
+}
+
+.day.checked.count-3 {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--slot-1) 16%, white) 0 50%, color-mix(in srgb, var(--slot-2) 16%, white) 50% 100%);
 }
 
 .day.checked .day-number {

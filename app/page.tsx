@@ -22,7 +22,8 @@ const weekdayLabels = ["一", "二", "三", "四", "五", "六", "日"];
 const monthLabels = ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"];
 
 type Checkin = {
-  group: string;
+  group?: string;
+  groups?: string[];
   checkedAt: string;
 };
 
@@ -47,6 +48,13 @@ function getDaysInYear(year: number) {
     date.setDate(date.getDate() + 1);
   }
   return days;
+}
+
+function normalizeGroups(entry?: Checkin) {
+  if (!entry) return [];
+  const groups = Array.isArray(entry.groups) ? entry.groups : entry.group ? [entry.group] : [];
+  const validGroups = groups.filter((group, index) => groupMap[group] && groups.indexOf(group) === index);
+  return validGroups.length ? validGroups.slice(0, 3) : ["default"];
 }
 
 export default function Home() {
@@ -96,8 +104,9 @@ export default function Home() {
   const workoutCounts = useMemo(() => {
     const counts = Object.fromEntries(muscleGroups.map((group) => [group.id, 0])) as Record<string, number>;
     Object.values(checkins).forEach((entry) => {
-      const group = groupMap[entry?.group] ? entry.group : "default";
-      counts[group] = (counts[group] ?? 0) + 1;
+      normalizeGroups(entry).forEach((group) => {
+        counts[group] = (counts[group] ?? 0) + 1;
+      });
     });
     return counts;
   }, [checkins]);
@@ -111,7 +120,7 @@ export default function Home() {
       if (group === "remove" || next[dateIso]?.group === group) {
         delete next[dateIso];
       } else {
-        next[dateIso] = { group, checkedAt: new Date().toISOString() };
+        next[dateIso] = { groups: [group], checkedAt: new Date().toISOString() };
       }
       return next;
     });
@@ -119,13 +128,34 @@ export default function Home() {
 
   function setSelectedGroup(group: string) {
     if (!openDate || openDate > todayIso) return;
-    setCheckins((current) => ({
-      ...current,
-      [openDate]: {
-        group,
-        checkedAt: current[openDate]?.checkedAt ?? new Date().toISOString(),
-      },
-    }));
+    setCheckins((current) => {
+      const currentEntry = current[openDate];
+      const currentGroups = normalizeGroups(currentEntry);
+      let nextGroups: string[];
+
+      if (group === "default") {
+        nextGroups = ["default"];
+      } else if (currentGroups.includes(group)) {
+        nextGroups = currentGroups.filter((currentGroup) => currentGroup !== group);
+      } else {
+        const baseGroups = currentGroups.filter((currentGroup) => currentGroup !== "default");
+        nextGroups = [...baseGroups, group].slice(0, 3);
+      }
+
+      if (!nextGroups.length) {
+        const next = { ...current };
+        delete next[openDate];
+        return next;
+      }
+
+      return {
+        ...current,
+        [openDate]: {
+          groups: nextGroups,
+          checkedAt: currentEntry?.checkedAt ?? new Date().toISOString(),
+        },
+      };
+    });
   }
 
   const visibleMonths = months.map((month) => ({
@@ -133,7 +163,8 @@ export default function Home() {
     days: month.days.filter((date) => {
       if (filter === "all") return true;
       const entry = checkins[isoDate(date)];
-      return filter === "checked" ? Boolean(entry) : entry?.group === filter;
+      const entryGroups = normalizeGroups(entry);
+      return filter === "checked" ? Boolean(entry) : entryGroups.includes(filter);
     }),
   }));
 
@@ -201,17 +232,25 @@ export default function Home() {
                 {month.days.map((date) => {
                 const dateIso = isoDate(date);
                 const entry = checkins[dateIso];
-                const group = groupMap[entry?.group ?? "default"] ?? groupMap.default;
+                const entryGroups = normalizeGroups(entry);
+                const displayGroups = entryGroups.map((group) => groupMap[group] ?? groupMap.default);
+                const primaryGroup = displayGroups[0] ?? groupMap.default;
                 const isFuture = dateIso > todayIso;
                 const isSelected = dateIso === selectedDate;
                 const isPopoverOpen = openDate === dateIso;
                 const dateObject = new Date(`${dateIso}T12:00:00`);
                 const popoverSide = date.getDay() === 0 || date.getDay() === 6 ? "popover-left" : "popover-right";
+                const dayStyle = {
+                  "--group-color": primaryGroup.color,
+                  "--slot-1": displayGroups[0]?.color ?? primaryGroup.color,
+                  "--slot-2": displayGroups[1]?.color ?? primaryGroup.color,
+                  "--slot-3": displayGroups[2]?.color ?? primaryGroup.color,
+                } as CSSProperties;
                 return (
                   <div className="day-cell" key={dateIso}>
                     <button
-                      className={`day ${entry ? "checked" : ""} ${isFuture ? "future" : ""} ${isSelected ? "selected" : ""}`}
-                      style={{ "--group-color": group.color } as CSSProperties}
+                      className={`day ${entry ? "checked" : ""} count-${displayGroups.length} ${isFuture ? "future" : ""} ${isSelected ? "selected" : ""}`}
+                      style={dayStyle}
                       onClick={() => {
                         setSelectedDate(dateIso);
                         setOpenDate(dateIso);
@@ -219,17 +258,25 @@ export default function Home() {
                           setCheckins((current) => ({
                             ...current,
                             [dateIso]: {
-                              group: "default",
+                              groups: ["default"],
                               checkedAt: new Date().toISOString(),
                             },
                           }));
                         }
                       }}
-                      title={`${formatChineseDate(date)}${entry ? ` · ${group.label}` : ""}`}
+                      title={`${formatChineseDate(date)}${entry ? ` · ${displayGroups.map((group) => group.label).join("、")}` : ""}`}
                       disabled={isFuture}
                     >
                       <span className="day-number">{date.getDate()}</span>
-                      {entry && <span className="day-icon">{group.icon}</span>}
+                      {entry && (
+                        <span className="day-icons" aria-hidden="true">
+                          {displayGroups.map((group) => (
+                            <span className="day-icon" key={group.id} style={{ "--icon-color": group.color } as CSSProperties}>
+                              {group.icon}
+                            </span>
+                          ))}
+                        </span>
+                      )}
                     </button>
                     {isPopoverOpen && (
                       <div
@@ -247,13 +294,15 @@ export default function Home() {
                         </div>
                         <div className="muscle-picker compact" aria-label="训练部位选择">
                           {muscleGroups.map((muscleGroup) => {
-                            const active = entry?.group === muscleGroup.id;
+                            const active = entryGroups.includes(muscleGroup.id);
+                            const disabled = !active && entryGroups.filter((group) => group !== "default").length >= 3 && muscleGroup.id !== "default";
                             return (
                               <button
                                 key={muscleGroup.id}
                                 className={active ? "active" : ""}
                                 style={{ "--group-color": muscleGroup.color } as CSSProperties}
                                 onClick={() => setSelectedGroup(muscleGroup.id)}
+                                disabled={disabled}
                               >
                                 <span aria-hidden="true">{muscleGroup.icon}</span>
                                 {muscleGroup.label}
