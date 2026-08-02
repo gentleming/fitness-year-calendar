@@ -88,6 +88,24 @@ h1 {
   letter-spacing: -0.04em;
 }
 
+.stat-breakdown {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 8px;
+  margin-top: 12px;
+}
+
+.stat-breakdown span {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  min-width: 0;
+  color: color-mix(in srgb, var(--group-color, #64748b) 82%, #172033);
+  font-size: 0.74rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
 .muscle-picker,
 .filters {
   display: flex;

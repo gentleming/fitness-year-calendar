@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 
 const currentYear = new Date().getFullYear();
@@ -10,6 +10,7 @@ const muscleGroups = [
   { id: "default", label: "综合", icon: "🏋️", color: "#64748b" },
   { id: "chest", label: "胸部", icon: "🛡️", color: "#ef4444" },
   { id: "arms", label: "手臂", icon: "💪", color: "#f97316" },
+  { id: "shoulders", label: "肩部", icon: "🔺", color: "#0891b2" },
   { id: "back", label: "背部", icon: "🌊", color: "#2563eb" },
   { id: "legs", label: "腿部", icon: "🦵", color: "#16a34a" },
   { id: "core", label: "核心", icon: "🔥", color: "#a855f7" },
@@ -92,6 +93,14 @@ export default function Home() {
   );
 
   const totalWorkoutDays = Object.keys(checkins).length;
+  const workoutCounts = useMemo(() => {
+    const counts = Object.fromEntries(muscleGroups.map((group) => [group.id, 0])) as Record<string, number>;
+    Object.values(checkins).forEach((entry) => {
+      const group = groupMap[entry?.group] ? entry.group : "default";
+      counts[group] = (counts[group] ?? 0) + 1;
+    });
+    return counts;
+  }, [checkins]);
 
   function toggleCheckin(dateIso: string, group = "default") {
     if (dateIso > todayIso) return;
@@ -138,7 +147,16 @@ export default function Home() {
           </h1>
         </div>
         <div className="stats-grid">
-          <Stat label="今年已健身" value={`${totalWorkoutDays} 天`} />
+          <Stat label="今年已健身" value={`${totalWorkoutDays} 天`}>
+            <div className="stat-breakdown">
+              {muscleGroups.map((group) => (
+                <span key={group.id} style={{ "--group-color": group.color } as CSSProperties}>
+                  <span aria-hidden="true">{group.icon}</span>
+                  {group.label} {workoutCounts[group.id] ?? 0}
+                </span>
+              ))}
+            </div>
+          </Stat>
         </div>
       </section>
 
@@ -168,11 +186,13 @@ export default function Home() {
                 <h2>{month.label}</h2>
                 <span>{months[monthIndex].days.filter((date) => checkins[isoDate(date)]).length} 天</span>
               </header>
-              <div className="weekdays">
-                {weekdayLabels.map((day) => (
-                  <span key={day}>{day}</span>
-                ))}
-              </div>
+              {filter === "all" && (
+                <div className="weekdays">
+                  {weekdayLabels.map((day) => (
+                    <span key={day}>{day}</span>
+                  ))}
+                </div>
+              )}
               <div className="days">
                 {filter === "all" &&
                   Array.from({ length: (months[monthIndex].days[0].getDay() + 6) % 7 }).map((_, index) => (
@@ -219,7 +239,6 @@ export default function Home() {
                       >
                         <div className="popover-header">
                           <div>
-                            <span>选择日期</span>
                             <strong>{formatChineseDate(dateObject)}</strong>
                           </div>
                           <button className="close-popover" onClick={() => setOpenDate(null)} aria-label="关闭">
@@ -263,11 +282,12 @@ export default function Home() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, children }: { label: string; value: string; children?: ReactNode }) {
   return (
     <div className="stat-card">
       <span>{label}</span>
       <strong>{value}</strong>
+      {children}
     </div>
   );
 }
