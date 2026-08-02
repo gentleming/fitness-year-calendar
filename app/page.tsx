@@ -11,7 +11,7 @@ const muscleGroups = [
   { id: "chest", label: "Chest", icon: "/icons/chest.png", color: "#ef4444" },
   { id: "arms", label: "Arms", icon: "/icons/arms.png", color: "#f97316" },
   { id: "shoulders", label: "Shoulders", icon: "/icons/shoulders.png", color: "#0891b2" },
-  { id: "back", label: "Back", icon: "/icons/back.png", color: "#2563eb" },
+  { id: "back", label: "Back", icon: "/icons/back.png", color: "#0f766e" },
   { id: "legs", label: "Legs", icon: "/icons/legs.png", color: "#16a34a" },
   { id: "core", label: "Core", icon: "/icons/core.png", color: "#a855f7" },
   { id: "cardio", label: "Cardio", icon: "/icons/cardio.png", color: "#db2777" },
