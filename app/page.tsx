@@ -5,34 +5,95 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 const launchYear = 2026;
 const actualYear = new Date().getFullYear();
+const languageStorageKey = "fitness-calendar-language";
+const themeStorageKey = "fitness-calendar-theme";
 
 const muscleGroups = [
-  { id: "default", label: "Full Body", icon: "/icons/default.png", color: "#3b82f6" },
-  { id: "chest", label: "Chest", icon: "/icons/chest.png", color: "#ef4444" },
-  { id: "arms", label: "Arms", icon: "/icons/arms.png", color: "#f97316" },
-  { id: "shoulders", label: "Shoulders", icon: "/icons/shoulders.png", color: "#0891b2" },
-  { id: "back", label: "Back", icon: "/icons/back.png", color: "#0f766e" },
-  { id: "legs", label: "Legs", icon: "/icons/legs.png", color: "#16a34a" },
-  { id: "core", label: "Core", icon: "/icons/core.png", color: "#a855f7" },
-  { id: "cardio", label: "Cardio", icon: "/icons/cardio.png", color: "#db2777" },
+  { id: "default", icon: "/icons/default.png", color: "#3b82f6" },
+  { id: "chest", icon: "/icons/chest.png", color: "#ef4444" },
+  { id: "arms", icon: "/icons/arms.png", color: "#f97316" },
+  { id: "shoulders", icon: "/icons/shoulders.png", color: "#0891b2" },
+  { id: "back", icon: "/icons/back.png", color: "#0f766e" },
+  { id: "legs", icon: "/icons/legs.png", color: "#16a34a" },
+  { id: "core", icon: "/icons/core.png", color: "#a855f7" },
+  { id: "cardio", icon: "/icons/cardio.png", color: "#db2777" },
 ];
 
 const groupMap = Object.fromEntries(muscleGroups.map((group) => [group.id, group]));
-const weekdayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const monthLabels = [
-  "JAN",
-  "FEB",
-  "MAR",
-  "APR",
-  "MAY",
-  "JUN",
-  "JUL",
-  "AUG",
-  "SEP",
-  "OCT",
-  "NOV",
-  "DEC",
-];
+
+type Language = "en" | "zh";
+type Theme = "light" | "dark";
+
+const copy = {
+  en: {
+    title: "Fitness Calendar",
+    allDates: "All Dates",
+    checked: "Checked",
+    days: "days",
+    ofDays: "of {days} days",
+    generating: "Generating...",
+    share: "Share",
+    close: "Close",
+    delete: "Delete",
+    alert: "Could not generate the image. Please try again.",
+    dateFilters: "Date filters",
+    yearSelector: "Year selector",
+    calendarActions: "Calendar actions",
+    categorySelection: "Workout category selection",
+    checkinDialog: "{date} workout check-in",
+    lightMode: "Light",
+    darkMode: "Dark",
+    languageToggle: "中文",
+    locale: "en-US",
+    joiner: ", ",
+    monthLabels: ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"],
+    weekdayLabels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    groups: {
+      default: "Full Body",
+      chest: "Chest",
+      arms: "Arms",
+      shoulders: "Shoulders",
+      back: "Back",
+      legs: "Legs",
+      core: "Core",
+      cardio: "Cardio",
+    },
+  },
+  zh: {
+    title: "健身日历",
+    allDates: "全部日期",
+    checked: "已打卡",
+    days: "天",
+    ofDays: "共 {days} 天",
+    generating: "生成中...",
+    share: "分享",
+    close: "关闭",
+    delete: "删除",
+    alert: "图片生成失败，请重试。",
+    dateFilters: "日期筛选",
+    yearSelector: "年份选择",
+    calendarActions: "日历操作",
+    categorySelection: "训练项目选择",
+    checkinDialog: "{date} 健身打卡",
+    lightMode: "亮色",
+    darkMode: "暗色",
+    languageToggle: "EN",
+    locale: "zh-CN",
+    joiner: "、",
+    monthLabels: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
+    weekdayLabels: ["一", "二", "三", "四", "五", "六", "日"],
+    groups: {
+      default: "综合",
+      chest: "胸部",
+      arms: "手臂",
+      shoulders: "肩部",
+      back: "背部",
+      legs: "腿部",
+      core: "核心",
+      cardio: "有氧",
+    },
+  },
+} as const;
 
 type Checkin = {
   group?: string;
@@ -67,8 +128,8 @@ function isoDate(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
-function formatEnglishDate(date: Date) {
-  return date.toLocaleDateString("en-US", {
+function formatDate(date: Date, language: Language) {
+  return date.toLocaleDateString(copy[language].locale, {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -111,12 +172,19 @@ export default function Home() {
   const [openDate, setOpenDate] = useState<string | null>(null);
   const [filter, setFilter] = useState("all");
   const [isSharing, setIsSharing] = useState(false);
+  const [language, setLanguage] = useState<Language>("en");
+  const [theme, setTheme] = useState<Theme>("light");
   const captureRef = useRef<HTMLElement | null>(null);
   const yearOptions = useMemo(() => getYearOptions(actualYear), []);
   const checkins = checkinsByYear[viewYear] ?? {};
+  const text = copy[language];
 
   useEffect(() => {
     setCheckinsByYear(Object.fromEntries(yearOptions.map((year) => [year, loadCheckins(year)])));
+    const storedLanguage = localStorage.getItem(languageStorageKey);
+    const storedTheme = localStorage.getItem(themeStorageKey);
+    if (storedLanguage === "en" || storedLanguage === "zh") setLanguage(storedLanguage);
+    if (storedTheme === "light" || storedTheme === "dark") setTheme(storedTheme);
   }, [yearOptions]);
 
   useEffect(() => {
@@ -141,11 +209,11 @@ export default function Home() {
   const days = useMemo(() => getDaysInYear(viewYear), [viewYear]);
   const months = useMemo(
     () =>
-      monthLabels.map((label, monthIndex) => ({
+      text.monthLabels.map((label, monthIndex) => ({
         label,
         days: days.filter((date) => date.getMonth() === monthIndex),
       })),
-    [days],
+    [days, text.monthLabels],
   );
 
   const totalWorkoutDays = Object.keys(checkins).length;
@@ -230,7 +298,7 @@ export default function Home() {
       await document.fonts.ready;
       const { toPng } = await import("html-to-image");
       const dataUrl = await toPng(node, {
-        backgroundColor: "#ffffff",
+        backgroundColor: theme === "dark" ? "#0f172a" : "#ffffff",
         cacheBust: true,
         pixelRatio: 2,
         width: node.scrollWidth,
@@ -245,7 +313,7 @@ export default function Home() {
       link.href = dataUrl;
       link.click();
     } catch {
-      window.alert("Could not generate the image. Please try again.");
+      window.alert(text.alert);
     } finally {
       setIsSharing(false);
     }
@@ -262,18 +330,40 @@ export default function Home() {
   }));
 
   return (
-    <main className="app-shell">
-      <section className="toolbar" aria-label="Calendar actions">
-        <div className="year-switcher" aria-label="Year selector">
+    <main className={`app-shell theme-${theme}`}>
+      <section className="toolbar" aria-label={text.calendarActions}>
+        <div className="year-switcher" aria-label={text.yearSelector}>
           {yearOptions.map((year) => (
             <button key={year} className={viewYear === year ? "selected" : ""} onClick={() => setViewYear(year)}>
               {year}
             </button>
           ))}
         </div>
-        <button className="share-button" onClick={shareAsImage} disabled={isSharing}>
-          {isSharing ? "Generating..." : "Share"}
-        </button>
+        <div className="toolbar-actions">
+          <button
+            className="utility-button"
+            onClick={() => {
+              const nextLanguage = language === "en" ? "zh" : "en";
+              setLanguage(nextLanguage);
+              localStorage.setItem(languageStorageKey, nextLanguage);
+            }}
+          >
+            {text.languageToggle}
+          </button>
+          <button
+            className="utility-button"
+            onClick={() => {
+              const nextTheme = theme === "light" ? "dark" : "light";
+              setTheme(nextTheme);
+              localStorage.setItem(themeStorageKey, nextTheme);
+            }}
+          >
+            {theme === "light" ? text.darkMode : text.lightMode}
+          </button>
+          <button className="share-button" onClick={shareAsImage} disabled={isSharing}>
+            {isSharing ? text.generating : text.share}
+          </button>
+        </div>
       </section>
 
       <section className={`share-capture ${isSharing ? "exporting" : ""}`} ref={captureRef}>
@@ -281,22 +371,22 @@ export default function Home() {
         <div className="hero-card">
           <h1>
             <span>{viewYear}</span>
-            <span>Fitness Calendar</span>
+            <span>{text.title}</span>
           </h1>
         </div>
         <div className="stats-grid">
           <Stat
             value={
               <>
-                {totalWorkoutDays} days <span>of {elapsedDays} days</span>
+                {totalWorkoutDays} {text.days} <span>{text.ofDays.replace("{days}", String(elapsedDays))}</span>
               </>
             }
           >
             <div className="stat-breakdown">
               {muscleGroups.map((group) => (
                 <span key={group.id}>
-                  <MuscleIcon src={group.icon} label={group.label} />
-                  {group.label} {workoutCounts[group.id] ?? 0}
+                  <MuscleIcon src={group.icon} label={text.groups[group.id as keyof typeof text.groups]} />
+                  {text.groups[group.id as keyof typeof text.groups]} {workoutCounts[group.id] ?? 0}
                 </span>
               ))}
             </div>
@@ -304,16 +394,16 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="filters" aria-label="Date filters">
+      <section className="filters" aria-label={text.dateFilters}>
         <button className={filter === "all" ? "selected" : ""} onClick={() => setFilter("all")}>
-          All Dates
+          {text.allDates}
         </button>
         <button className={filter === "checked" ? "selected" : ""} onClick={() => setFilter("checked")}>
-          Checked
+          {text.checked}
         </button>
         {muscleGroups.slice(1).map((group) => (
           <button key={group.id} className={filter === group.id ? "selected" : ""} onClick={() => setFilter(group.id)}>
-            {group.label}
+            {text.groups[group.id as keyof typeof text.groups]}
           </button>
         ))}
       </section>
@@ -328,11 +418,13 @@ export default function Home() {
             <article className={`month-card ${monthHasOpenPopover ? "popover-active" : ""}`} key={month.label}>
               <header>
                 <h2>{month.label}</h2>
-                <span>{months[monthIndex].days.filter((date) => checkins[isoDate(date)]).length} days</span>
+                <span>
+                  {months[monthIndex].days.filter((date) => checkins[isoDate(date)]).length} {text.days}
+                </span>
               </header>
               {filter === "all" && (
                 <div className="weekdays">
-                  {weekdayLabels.map((day) => (
+                  {text.weekdayLabels.map((day) => (
                     <span key={day}>{day}</span>
                   ))}
                 </div>
@@ -378,7 +470,9 @@ export default function Home() {
                           }));
                         }
                       }}
-                      title={`${formatEnglishDate(date)}${entry ? ` · ${displayGroups.map((group) => group.label).join(", ")}` : ""}`}
+                      title={`${formatDate(date, language)}${
+                        entry ? ` · ${displayGroups.map((group) => text.groups[group.id as keyof typeof text.groups]).join(text.joiner)}` : ""
+                      }`}
                       disabled={isFuture}
                     >
                       <span className="day-number">{date.getDate()}</span>
@@ -386,7 +480,7 @@ export default function Home() {
                         <span className="day-icons" aria-hidden="true">
                           {displayGroups.map((group) => (
                             <span className="day-icon" key={group.id} style={{ "--icon-color": group.color } as CSSProperties}>
-                              <MuscleIcon src={group.icon} label={group.label} />
+                              <MuscleIcon src={group.icon} label={text.groups[group.id as keyof typeof text.groups]} />
                             </span>
                           ))}
                         </span>
@@ -396,17 +490,17 @@ export default function Home() {
                       <div
                         className={`checkin-popover ${popoverSide}`}
                         role="dialog"
-                        aria-label={`${formatEnglishDate(dateObject)} workout check-in`}
+                        aria-label={text.checkinDialog.replace("{date}", formatDate(dateObject, language))}
                       >
                         <div className="popover-header">
                           <div>
-                            <strong>{formatEnglishDate(dateObject)}</strong>
+                            <strong>{formatDate(dateObject, language)}</strong>
                           </div>
-                          <button className="close-popover" onClick={() => setOpenDate(null)} aria-label="Close">
+                          <button className="close-popover" onClick={() => setOpenDate(null)} aria-label={text.close}>
                             ×
                           </button>
                         </div>
-                        <div className="muscle-picker compact" aria-label="Workout category selection">
+                        <div className="muscle-picker compact" aria-label={text.categorySelection}>
                           {muscleGroups.map((muscleGroup) => {
                             const active = entryGroups.includes(muscleGroup.id);
                             const disabled = !active && entryGroups.filter((group) => group !== "default").length >= 3 && muscleGroup.id !== "default";
@@ -418,8 +512,8 @@ export default function Home() {
                                 onClick={() => setSelectedGroup(muscleGroup.id)}
                                 disabled={disabled}
                               >
-                                <MuscleIcon src={muscleGroup.icon} label={muscleGroup.label} />
-                                {muscleGroup.label}
+                                <MuscleIcon src={muscleGroup.icon} label={text.groups[muscleGroup.id as keyof typeof text.groups]} />
+                                {text.groups[muscleGroup.id as keyof typeof text.groups]}
                               </button>
                             );
                           })}
@@ -436,7 +530,7 @@ export default function Home() {
                           }}
                           disabled={!entry}
                         >
-                          Delete
+                          {text.delete}
                         </button>
                       </div>
                     )}

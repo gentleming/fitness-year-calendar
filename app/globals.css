@@ -17,6 +17,10 @@ body {
   background: #f3f6fb;
 }
 
+body:has(.theme-dark) {
+  background: #0f172a;
+}
+
 button {
   font: inherit;
 }
@@ -35,6 +39,13 @@ button {
   margin-bottom: 14px;
 }
 
+.toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
 .year-switcher {
   display: flex;
   flex-wrap: wrap;
@@ -42,6 +53,7 @@ button {
 }
 
 .year-switcher button,
+.utility-button,
 .share-button {
   border: 1px solid rgba(148, 163, 184, 0.24);
   border-radius: 999px;
@@ -61,17 +73,20 @@ button {
   padding: 7px 12px;
 }
 
+.utility-button,
 .share-button {
   padding: 8px 14px;
 }
 
 .year-switcher button:hover,
+.utility-button:hover,
 .share-button:hover:not(:disabled) {
   transform: translateY(-1px);
   border-color: rgba(37, 99, 235, 0.35);
 }
 
 .year-switcher button.selected,
+.utility-button,
 .share-button {
   border-color: rgba(96, 165, 250, 0.52);
   background: rgba(219, 234, 254, 0.74);
@@ -134,6 +149,100 @@ button {
 
 .share-capture.exporting .day.count-3 .day-icon {
   font-size: 0.74rem;
+}
+
+.theme-dark {
+  color: #e5edf8;
+}
+
+.theme-dark.share-capture,
+.theme-dark .share-capture {
+  background: #0f172a;
+}
+
+.theme-dark .year-switcher button,
+.theme-dark .utility-button,
+.theme-dark .share-button,
+.theme-dark .muscle-picker button,
+.theme-dark .filters button,
+.theme-dark .close-popover {
+  border-color: rgba(148, 163, 184, 0.28);
+  background: rgba(30, 41, 59, 0.78);
+  color: #dbeafe;
+}
+
+.theme-dark .year-switcher button.selected,
+.theme-dark .utility-button,
+.theme-dark .share-button,
+.theme-dark .filters button.selected {
+  border-color: rgba(96, 165, 250, 0.62);
+  background: rgba(30, 64, 175, 0.34);
+  color: #93c5fd;
+}
+
+.theme-dark .month-card,
+.theme-dark .stat-card {
+  border-color: rgba(148, 163, 184, 0.18);
+  background: rgba(15, 23, 42, 0.82);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.22);
+}
+
+.theme-dark h1,
+.theme-dark .month-card h2,
+.theme-dark .stat-card strong,
+.theme-dark .popover-header strong {
+  color: #f8fafc;
+}
+
+.theme-dark .stat-card span,
+.theme-dark .month-card header span,
+.theme-dark .popover-header span,
+.theme-dark .weekdays,
+.theme-dark .stat-card strong span {
+  color: #94a3b8;
+}
+
+.theme-dark .stat-breakdown span {
+  color: #cbd5e1;
+}
+
+.theme-dark .day {
+  border-color: rgba(148, 163, 184, 0.18);
+  background: rgba(30, 41, 59, 0.68);
+  color: #cbd5e1;
+}
+
+.theme-dark .day.checked {
+  background: color-mix(in srgb, var(--group-color) 24%, #0f172a);
+}
+
+.theme-dark .day.count-2,
+.theme-dark .day.count-3,
+.theme-dark .day.checked.count-2,
+.theme-dark .day.checked.count-3 {
+  background: color-mix(in srgb, var(--group-color) 24%, #0f172a);
+}
+
+.theme-dark .checkin-popover,
+.theme-dark .checkin-popover::before {
+  border-color: rgba(148, 163, 184, 0.24);
+  background: rgba(15, 23, 42, 0.96);
+}
+
+.theme-dark .popover-remove {
+  border-color: rgba(248, 113, 113, 0.28);
+  background: rgba(127, 29, 29, 0.28);
+  color: #fca5a5;
+}
+
+.theme-dark .share-capture.exporting {
+  background: #0f172a;
+}
+
+.theme-dark .share-capture.exporting .month-card,
+.theme-dark .share-capture.exporting .stat-card,
+.theme-dark .share-capture.exporting .checkin-popover {
+  background: #111827;
 }
 
 .hero {
