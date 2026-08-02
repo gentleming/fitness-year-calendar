@@ -461,7 +461,7 @@ export default function Home() {
         <div className="year-switcher" ref={yearMenuRef}>
           <button className="year-trigger" onClick={() => setIsYearMenuOpen((open) => !open)} aria-expanded={isYearMenuOpen} aria-label={text.yearSelector}>
             <span>{viewYear}</span>
-            <span className="year-trigger-arrow" aria-hidden="true">⌄</span>
+            <span className="year-trigger-arrow" aria-hidden="true" />
           </button>
           {isYearMenuOpen && (
             <div className="year-menu-panel">
