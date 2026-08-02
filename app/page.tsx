@@ -150,7 +150,7 @@ export default function Home() {
           <Stat label="今年已健身" value={`${totalWorkoutDays} 天`}>
             <div className="stat-breakdown">
               {muscleGroups.map((group) => (
-                <span key={group.id} style={{ "--group-color": group.color } as CSSProperties}>
+                <span key={group.id}>
                   <span aria-hidden="true">{group.icon}</span>
                   {group.label} {workoutCounts[group.id] ?? 0}
                 </span>
