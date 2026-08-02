@@ -230,7 +230,7 @@ export default function Home() {
       await document.fonts.ready;
       const { toPng } = await import("html-to-image");
       const dataUrl = await toPng(node, {
-        backgroundColor: "#f3f6fb",
+        backgroundColor: "#ffffff",
         cacheBust: true,
         pixelRatio: 2,
         width: node.scrollWidth,

@@ -91,7 +91,8 @@ button {
 .share-capture.exporting {
   width: 1276px;
   max-width: none;
-  background: #f3f6fb;
+  padding: 32px;
+  background: #ffffff;
 }
 
 .share-capture.exporting *,
@@ -589,12 +590,12 @@ h1 {
   }
 
   .toolbar {
-    align-items: stretch;
-    flex-direction: column;
+    align-items: center;
+    flex-direction: row;
   }
 
   .share-button {
-    align-self: flex-start;
+    flex: 0 0 auto;
   }
 
   .month-card,
@@ -607,7 +608,7 @@ h1 {
   }
 
   .calendar-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
   }
 
   .day {
