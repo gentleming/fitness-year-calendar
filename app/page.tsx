@@ -9,14 +9,14 @@ const languageStorageKey = "fitness-calendar-language";
 const themeStorageKey = "fitness-calendar-theme";
 
 const muscleGroups = [
-  { id: "default", icon: "/icons/default.png", color: "#3b82f6" },
-  { id: "chest", icon: "/icons/chest.png", color: "#ef4444" },
-  { id: "arms", icon: "/icons/arms.png", color: "#f97316" },
-  { id: "shoulders", icon: "/icons/shoulders.png", color: "#0891b2" },
-  { id: "back", icon: "/icons/back.png", color: "#0f766e" },
-  { id: "legs", icon: "/icons/legs.png", color: "#16a34a" },
-  { id: "core", icon: "/icons/core.png", color: "#a855f7" },
-  { id: "cardio", icon: "/icons/cardio.png", color: "#db2777" },
+  { id: "default", icon: "/icons/default.png", darkIcon: "/icons/default-light.png", color: "#3b82f6" },
+  { id: "chest", icon: "/icons/chest.png", darkIcon: "/icons/chest-light.png", color: "#ef4444" },
+  { id: "arms", icon: "/icons/arms.png", darkIcon: "/icons/arms-light.png", color: "#f97316" },
+  { id: "shoulders", icon: "/icons/shoulders.png", darkIcon: "/icons/shoulders-light.png", color: "#0891b2" },
+  { id: "back", icon: "/icons/back.png", darkIcon: "/icons/back-light.png", color: "#0f766e" },
+  { id: "legs", icon: "/icons/legs.png", darkIcon: "/icons/legs-light.png", color: "#16a34a" },
+  { id: "core", icon: "/icons/core.png", darkIcon: "/icons/core-light.png", color: "#a855f7" },
+  { id: "cardio", icon: "/icons/cardio.png", darkIcon: "/icons/cardio-light.png", color: "#db2777" },
 ];
 
 const groupMap = Object.fromEntries(muscleGroups.map((group) => [group.id, group]));
@@ -161,6 +161,10 @@ function normalizeGroups(entry?: Checkin) {
 
 function MuscleIcon({ src, label }: { src: string; label: string }) {
   return <img className="muscle-icon" src={src} alt="" aria-hidden="true" draggable={false} data-label={label} />;
+}
+
+function getMuscleIcon(group: (typeof muscleGroups)[number], theme: Theme) {
+  return theme === "dark" ? group.darkIcon : group.icon;
 }
 
 export default function Home() {
@@ -385,7 +389,7 @@ export default function Home() {
             <div className="stat-breakdown">
               {muscleGroups.map((group) => (
                 <span key={group.id}>
-                  <MuscleIcon src={group.icon} label={text.groups[group.id as keyof typeof text.groups]} />
+                  <MuscleIcon src={getMuscleIcon(group, theme)} label={text.groups[group.id as keyof typeof text.groups]} />
                   {text.groups[group.id as keyof typeof text.groups]} {workoutCounts[group.id] ?? 0}
                 </span>
               ))}
@@ -480,7 +484,7 @@ export default function Home() {
                         <span className="day-icons" aria-hidden="true">
                           {displayGroups.map((group) => (
                             <span className="day-icon" key={group.id} style={{ "--icon-color": group.color } as CSSProperties}>
-                              <MuscleIcon src={group.icon} label={text.groups[group.id as keyof typeof text.groups]} />
+                              <MuscleIcon src={getMuscleIcon(group, theme)} label={text.groups[group.id as keyof typeof text.groups]} />
                             </span>
                           ))}
                         </span>
@@ -512,7 +516,7 @@ export default function Home() {
                                 onClick={() => setSelectedGroup(muscleGroup.id)}
                                 disabled={disabled}
                               >
-                                <MuscleIcon src={muscleGroup.icon} label={text.groups[muscleGroup.id as keyof typeof text.groups]} />
+                                <MuscleIcon src={getMuscleIcon(muscleGroup, theme)} label={text.groups[muscleGroup.id as keyof typeof text.groups]} />
                                 {text.groups[muscleGroup.id as keyof typeof text.groups]}
                               </button>
                             );
