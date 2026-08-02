@@ -111,18 +111,18 @@ button {
   }
 
 .year-trigger {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
   min-width: 94px;
-  padding: 8px 34px 8px 14px;
-  background-image:
-    linear-gradient(45deg, transparent 50%, currentColor 50%),
-    linear-gradient(135deg, currentColor 50%, transparent 50%);
-  background-position:
-    calc(100% - 18px) 52%,
-    calc(100% - 13px) 52%;
-  background-size:
-    5px 5px,
-    5px 5px;
-  background-repeat: no-repeat;
+  padding: 8px 14px;
+}
+
+.year-trigger-arrow {
+  font-size: 0.9em;
+  line-height: 1;
+  transform: translateY(-1px);
 }
 
 .utility-button,
