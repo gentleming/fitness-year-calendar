@@ -7,7 +7,7 @@ const launchYear = 2026;
 const actualYear = new Date().getFullYear();
 
 const muscleGroups = [
-  { id: "default", label: "Full Body", icon: "/icons/default.png", color: "#60a5fa" },
+  { id: "default", label: "Full Body", icon: "/icons/default.png", color: "#3b82f6" },
   { id: "chest", label: "Chest", icon: "/icons/chest.png", color: "#ef4444" },
   { id: "arms", label: "Arms", icon: "/icons/arms.png", color: "#f97316" },
   { id: "shoulders", label: "Shoulders", icon: "/icons/shoulders.png", color: "#0891b2" },
