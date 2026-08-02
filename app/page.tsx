@@ -263,10 +263,17 @@ export default function Home() {
                         </div>
                         <button
                           className="popover-remove"
-                          onClick={() => toggleCheckin(dateIso, "remove")}
+                          onClick={() => {
+                            setCheckins((current) => {
+                              const next = { ...current };
+                              delete next[dateIso];
+                              return next;
+                            });
+                            setOpenDate(null);
+                          }}
                           disabled={!entry}
                         >
-                          取消打卡
+                          删除
                         </button>
                       </div>
                     )}
