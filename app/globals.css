@@ -42,10 +42,12 @@ button {
   justify-content: flex-end;
 }
 
+.year-switcher,
 .data-menu {
   position: relative;
 }
 
+.year-menu-panel,
 .data-menu-panel {
   position: absolute;
   top: calc(100% + 8px);
@@ -61,6 +63,13 @@ button {
   backdrop-filter: blur(18px);
 }
 
+.year-menu-panel {
+  left: 0;
+  right: auto;
+  min-width: 112px;
+}
+
+.year-menu-panel button,
 .data-menu-panel button {
   border: 0;
   border-radius: 12px;
@@ -73,6 +82,8 @@ button {
   font-weight: 800;
 }
 
+.year-menu-panel button:hover,
+.year-menu-panel button.active,
 .data-menu-panel button:hover {
   background: rgba(219, 234, 254, 0.66);
   color: #2563eb;
@@ -82,7 +93,7 @@ button {
   display: none;
 }
 
-.year-switcher select,
+.year-trigger,
 .utility-button,
 .share-button {
   border: 1px solid rgba(148, 163, 184, 0.24);
@@ -97,10 +108,9 @@ button {
     border-color 160ms ease,
     background 160ms ease,
     color 160ms ease;
-}
+  }
 
-.year-switcher select {
-  appearance: none;
+.year-trigger {
   min-width: 94px;
   padding: 8px 34px 8px 14px;
   background-image:
@@ -120,14 +130,14 @@ button {
   padding: 8px 14px;
 }
 
-.year-switcher select:hover,
+.year-trigger:hover,
 .utility-button:hover,
 .share-button:hover:not(:disabled) {
   transform: translateY(-1px);
   border-color: rgba(37, 99, 235, 0.35);
 }
 
-.year-switcher select,
+.year-trigger,
 .utility-button,
 .share-button {
   border-color: rgba(96, 165, 250, 0.52);

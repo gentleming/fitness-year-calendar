@@ -247,9 +247,11 @@ export default function Home() {
   const [openDate, setOpenDate] = useState<string | null>(null);
   const [filter, setFilter] = useState("all");
   const [isSharing, setIsSharing] = useState(false);
+  const [isYearMenuOpen, setIsYearMenuOpen] = useState(false);
   const [isDataMenuOpen, setIsDataMenuOpen] = useState(false);
   const [language, setLanguage] = useState<Language>("en");
   const captureRef = useRef<HTMLElement | null>(null);
+  const yearMenuRef = useRef<HTMLDivElement | null>(null);
   const dataMenuRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const yearOptions = useMemo(() => getYearOptions(actualYear), []);
@@ -282,17 +284,19 @@ export default function Home() {
   }, [openDate]);
 
   useEffect(() => {
-    if (!isDataMenuOpen) return;
+    if (!isYearMenuOpen && !isDataMenuOpen) return;
 
     function closeMenuOnOutsideClick(event: PointerEvent) {
       const target = event.target as HTMLElement | null;
-      if (!target || dataMenuRef.current?.contains(target)) return;
+      if (!target) return;
+      if (yearMenuRef.current?.contains(target) || dataMenuRef.current?.contains(target)) return;
+      setIsYearMenuOpen(false);
       setIsDataMenuOpen(false);
     }
 
     document.addEventListener("pointerdown", closeMenuOnOutsideClick);
     return () => document.removeEventListener("pointerdown", closeMenuOnOutsideClick);
-  }, [isDataMenuOpen]);
+  }, [isYearMenuOpen, isDataMenuOpen]);
 
   const days = useMemo(() => getDaysInYear(viewYear), [viewYear]);
   const months = useMemo(
@@ -454,14 +458,26 @@ export default function Home() {
   return (
     <main className="app-shell">
       <section className="toolbar" aria-label={text.calendarActions}>
-        <div className="year-switcher">
-          <select aria-label={text.yearSelector} value={viewYear} onChange={(event) => setViewYear(Number(event.target.value))}>
-            {yearOptions.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </select>
+        <div className="year-switcher" ref={yearMenuRef}>
+          <button className="year-trigger" onClick={() => setIsYearMenuOpen((open) => !open)} aria-expanded={isYearMenuOpen} aria-label={text.yearSelector}>
+            {viewYear}
+          </button>
+          {isYearMenuOpen && (
+            <div className="year-menu-panel">
+              {yearOptions.map((year) => (
+                <button
+                  key={year}
+                  className={viewYear === year ? "active" : ""}
+                  onClick={() => {
+                    setViewYear(year);
+                    setIsYearMenuOpen(false);
+                  }}
+                >
+                  {year}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <div className="toolbar-actions">
           <div className="data-menu" ref={dataMenuRef}>
