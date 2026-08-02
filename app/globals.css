@@ -226,8 +226,9 @@ h1 {
 }
 
 .stat-breakdown .stat-item {
-  display: inline-flex;
-  gap: 5px;
+  display: grid;
+  grid-template-columns: 16px minmax(72px, 1fr) max-content;
+  column-gap: 8px;
   align-items: center;
   min-width: 0;
   color: #475569;
@@ -239,12 +240,14 @@ h1 {
 .stat-breakdown .stat-name {
   color: inherit;
   font: inherit;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .stat-breakdown .stat-count {
-  margin-left: 4px;
   color: inherit;
   font: inherit;
+  justify-self: start;
 }
 
 .muscle-icon {
