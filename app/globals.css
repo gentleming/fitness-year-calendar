@@ -276,9 +276,9 @@ h1 {
 
 .day-icons {
   display: grid;
-  width: 78%;
-  height: 78%;
-  gap: 2px;
+  width: 82%;
+  height: 82%;
+  gap: 4px;
 }
 
 .day.count-1 .day-icons {
@@ -298,10 +298,13 @@ h1 {
 .day.count-2 .day-icons {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: center;
+  gap: 6px;
 }
 
 .day.count-2 .day-icon {
-  height: 72%;
+  width: 92%;
+  height: 66%;
+  justify-self: center;
   background: rgba(255, 255, 255, 0.44);
   font-size: 0.72rem;
 }
@@ -314,16 +317,19 @@ h1 {
 .day.count-3 .day-icons {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 4px 6px;
 }
 
 .day.count-3 .day-icon {
+  width: 88%;
+  justify-self: center;
   background: rgba(255, 255, 255, 0.5);
   font-size: 0.62rem;
 }
 
 .day.count-3 .day-icon:nth-child(3) {
   grid-column: 1 / -1;
-  width: 50%;
+  width: 44%;
   justify-self: center;
   background: color-mix(in srgb, var(--slot-3) 16%, white);
 }
