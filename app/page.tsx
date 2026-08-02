@@ -2,30 +2,19 @@
 
 import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
-import {
-  BicepsFlexed,
-  Dumbbell,
-  Flame,
-  Footprints,
-  HeartPulse,
-  Shield,
-  Triangle,
-  Waves,
-  type LucideIcon,
-} from "lucide-react";
 
 const currentYear = new Date().getFullYear();
 const storageKey = `fitness-calendar-${currentYear}`;
 
 const muscleGroups = [
-  { id: "default", label: "综合", Icon: Dumbbell, color: "#64748b" },
-  { id: "chest", label: "胸部", Icon: Shield, color: "#ef4444" },
-  { id: "arms", label: "手臂", Icon: BicepsFlexed, color: "#f97316" },
-  { id: "shoulders", label: "肩部", Icon: Triangle, color: "#0891b2" },
-  { id: "back", label: "背部", Icon: Waves, color: "#2563eb" },
-  { id: "legs", label: "腿部", Icon: Footprints, color: "#16a34a" },
-  { id: "core", label: "核心", Icon: Flame, color: "#a855f7" },
-  { id: "cardio", label: "有氧", Icon: HeartPulse, color: "#db2777" },
+  { id: "default", label: "综合", icon: "/icons/default.png", color: "#64748b" },
+  { id: "chest", label: "胸部", icon: "/icons/chest.png", color: "#ef4444" },
+  { id: "arms", label: "手臂", icon: "/icons/arms.png", color: "#f97316" },
+  { id: "shoulders", label: "肩部", icon: "/icons/shoulders.png", color: "#0891b2" },
+  { id: "back", label: "背部", icon: "/icons/back.png", color: "#2563eb" },
+  { id: "legs", label: "腿部", icon: "/icons/legs.png", color: "#16a34a" },
+  { id: "core", label: "核心", icon: "/icons/core.png", color: "#a855f7" },
+  { id: "cardio", label: "有氧", icon: "/icons/cardio.png", color: "#db2777" },
 ];
 
 const groupMap = Object.fromEntries(muscleGroups.map((group) => [group.id, group]));
@@ -68,8 +57,8 @@ function normalizeGroups(entry?: Checkin) {
   return validGroups.length ? validGroups.slice(0, 3) : ["default"];
 }
 
-function MuscleIcon({ Icon }: { Icon: LucideIcon }) {
-  return <Icon className="muscle-icon" aria-hidden="true" strokeWidth={2.35} />;
+function MuscleIcon({ src, label }: { src: string; label: string }) {
+  return <img className="muscle-icon" src={src} alt="" aria-hidden="true" draggable={false} data-label={label} />;
 }
 
 export default function Home() {
@@ -197,7 +186,7 @@ export default function Home() {
             <div className="stat-breakdown">
               {muscleGroups.map((group) => (
                 <span key={group.id}>
-                  <MuscleIcon Icon={group.Icon} />
+                  <MuscleIcon src={group.icon} label={group.label} />
                   {group.label} {workoutCounts[group.id] ?? 0}
                 </span>
               ))}
@@ -287,7 +276,7 @@ export default function Home() {
                         <span className="day-icons" aria-hidden="true">
                           {displayGroups.map((group) => (
                             <span className="day-icon" key={group.id} style={{ "--icon-color": group.color } as CSSProperties}>
-                              <MuscleIcon Icon={group.Icon} />
+                              <MuscleIcon src={group.icon} label={group.label} />
                             </span>
                           ))}
                         </span>
@@ -319,7 +308,7 @@ export default function Home() {
                                 onClick={() => setSelectedGroup(muscleGroup.id)}
                                 disabled={disabled}
                               >
-                                <MuscleIcon Icon={muscleGroup.Icon} />
+                                <MuscleIcon src={muscleGroup.icon} label={muscleGroup.label} />
                                 {muscleGroup.label}
                               </button>
                             );
