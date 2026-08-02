@@ -486,7 +486,7 @@ h1 {
 }
 
 .day.checked {
-  border-color: rgba(96, 165, 250, 0.52);
+  border-color: color-mix(in srgb, var(--group-color) 58%, white);
   background: color-mix(in srgb, var(--group-color) 16%, white);
   color: var(--group-color);
 }
