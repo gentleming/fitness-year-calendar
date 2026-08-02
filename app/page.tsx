@@ -50,6 +50,12 @@ function getDaysInYear(year: number) {
   return days;
 }
 
+function getElapsedDaysInYear(date: Date) {
+  const start = new Date(date.getFullYear(), 0, 1);
+  const elapsed = Math.floor((date.getTime() - start.getTime()) / 86_400_000) + 1;
+  return Math.max(1, elapsed);
+}
+
 function normalizeGroups(entry?: Checkin) {
   if (!entry) return [];
   const groups = Array.isArray(entry.groups) ? entry.groups : entry.group ? [entry.group] : [];
@@ -62,7 +68,8 @@ function MuscleIcon({ src, label }: { src: string; label: string }) {
 }
 
 export default function Home() {
-  const todayIso = isoDate(new Date());
+  const today = new Date();
+  const todayIso = isoDate(today);
   const [checkins, setCheckins] = useState<Checkins>({});
   const [selectedDate, setSelectedDate] = useState(todayIso);
   const [openDate, setOpenDate] = useState<string | null>(null);
@@ -105,6 +112,8 @@ export default function Home() {
   );
 
   const totalWorkoutDays = Object.keys(checkins).length;
+  const elapsedDays = Math.min(days.length, getElapsedDaysInYear(today));
+  const workoutRatio = Math.round((totalWorkoutDays / elapsedDays) * 100);
   const workoutCounts = useMemo(() => {
     const counts = Object.fromEntries(muscleGroups.map((group) => [group.id, 0])) as Record<string, number>;
     Object.values(checkins).forEach((entry) => {
@@ -183,6 +192,7 @@ export default function Home() {
         </div>
         <div className="stats-grid">
           <Stat label="今年已健身" value={`${totalWorkoutDays} 天`}>
+            <div className="stat-ratio">占已过 {elapsedDays} 天的 {workoutRatio}%</div>
             <div className="stat-breakdown">
               {muscleGroups.map((group) => (
                 <span key={group.id}>
@@ -200,7 +210,7 @@ export default function Home() {
           全部日期
         </button>
         <button className={filter === "checked" ? "selected" : ""} onClick={() => setFilter("checked")}>
-          只看已打卡
+          已打卡
         </button>
         {muscleGroups.slice(1).map((group) => (
           <button key={group.id} className={filter === group.id ? "selected" : ""} onClick={() => setFilter(group.id)}>
