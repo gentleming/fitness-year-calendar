@@ -7,19 +7,32 @@ const currentYear = new Date().getFullYear();
 const storageKey = `fitness-calendar-${currentYear}`;
 
 const muscleGroups = [
-  { id: "default", label: "综合", icon: "/icons/default.png", color: "#64748b" },
-  { id: "chest", label: "胸部", icon: "/icons/chest.png", color: "#ef4444" },
-  { id: "arms", label: "手臂", icon: "/icons/arms.png", color: "#f97316" },
-  { id: "shoulders", label: "肩部", icon: "/icons/shoulders.png", color: "#0891b2" },
-  { id: "back", label: "背部", icon: "/icons/back.png", color: "#2563eb" },
-  { id: "legs", label: "腿部", icon: "/icons/legs.png", color: "#16a34a" },
-  { id: "core", label: "核心", icon: "/icons/core.png", color: "#a855f7" },
-  { id: "cardio", label: "有氧", icon: "/icons/cardio.png", color: "#db2777" },
+  { id: "default", label: "Full Body", icon: "/icons/default.png", color: "#64748b" },
+  { id: "chest", label: "Chest", icon: "/icons/chest.png", color: "#ef4444" },
+  { id: "arms", label: "Arms", icon: "/icons/arms.png", color: "#f97316" },
+  { id: "shoulders", label: "Shoulders", icon: "/icons/shoulders.png", color: "#0891b2" },
+  { id: "back", label: "Back", icon: "/icons/back.png", color: "#2563eb" },
+  { id: "legs", label: "Legs", icon: "/icons/legs.png", color: "#16a34a" },
+  { id: "core", label: "Core", icon: "/icons/core.png", color: "#a855f7" },
+  { id: "cardio", label: "Cardio", icon: "/icons/cardio.png", color: "#db2777" },
 ];
 
 const groupMap = Object.fromEntries(muscleGroups.map((group) => [group.id, group]));
-const weekdayLabels = ["一", "二", "三", "四", "五", "六", "日"];
-const monthLabels = ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"];
+const weekdayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const monthLabels = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
 type Checkin = {
   group?: string;
@@ -36,8 +49,12 @@ function isoDate(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
-function formatChineseDate(date: Date) {
-  return `${date.getFullYear()} 年 ${date.getMonth() + 1} 月 ${date.getDate()} 日`;
+function formatEnglishDate(date: Date) {
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 }
 
 function getDaysInYear(year: number) {
@@ -113,7 +130,6 @@ export default function Home() {
 
   const totalWorkoutDays = Object.keys(checkins).length;
   const elapsedDays = Math.min(days.length, getElapsedDaysInYear(today));
-  const workoutRatio = Math.round((totalWorkoutDays / elapsedDays) * 100);
   const workoutCounts = useMemo(() => {
     const counts = Object.fromEntries(muscleGroups.map((group) => [group.id, 0])) as Record<string, number>;
     Object.values(checkins).forEach((entry) => {
@@ -191,8 +207,14 @@ export default function Home() {
           </h1>
         </div>
         <div className="stats-grid">
-          <Stat label="今年已健身" value={`${totalWorkoutDays} 天`}>
-            <div className="stat-ratio">占已过 {elapsedDays} 天的 {workoutRatio}%</div>
+          <Stat
+            label="Workout"
+            value={
+              <>
+                {totalWorkoutDays} days <span>of {elapsedDays} days</span>
+              </>
+            }
+          >
             <div className="stat-breakdown">
               {muscleGroups.map((group) => (
                 <span key={group.id}>
@@ -205,12 +227,12 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="filters" aria-label="筛选日期">
+      <section className="filters" aria-label="Date filters">
         <button className={filter === "all" ? "selected" : ""} onClick={() => setFilter("all")}>
-          全部日期
+          All Dates
         </button>
         <button className={filter === "checked" ? "selected" : ""} onClick={() => setFilter("checked")}>
-          已打卡
+          Checked
         </button>
         {muscleGroups.slice(1).map((group) => (
           <button key={group.id} className={filter === group.id ? "selected" : ""} onClick={() => setFilter(group.id)}>
@@ -229,7 +251,7 @@ export default function Home() {
             <article className={`month-card ${monthHasOpenPopover ? "popover-active" : ""}`} key={month.label}>
               <header>
                 <h2>{month.label}</h2>
-                <span>{months[monthIndex].days.filter((date) => checkins[isoDate(date)]).length} 天</span>
+                <span>{months[monthIndex].days.filter((date) => checkins[isoDate(date)]).length} days</span>
               </header>
               {filter === "all" && (
                 <div className="weekdays">
@@ -279,7 +301,7 @@ export default function Home() {
                           }));
                         }
                       }}
-                      title={`${formatChineseDate(date)}${entry ? ` · ${displayGroups.map((group) => group.label).join("、")}` : ""}`}
+                      title={`${formatEnglishDate(date)}${entry ? ` · ${displayGroups.map((group) => group.label).join(", ")}` : ""}`}
                       disabled={isFuture}
                     >
                       <span className="day-number">{date.getDate()}</span>
@@ -297,17 +319,17 @@ export default function Home() {
                       <div
                         className={`checkin-popover ${popoverSide}`}
                         role="dialog"
-                        aria-label={`${formatChineseDate(dateObject)} 健身打卡`}
+                        aria-label={`${formatEnglishDate(dateObject)} workout check-in`}
                       >
                         <div className="popover-header">
                           <div>
-                            <strong>{formatChineseDate(dateObject)}</strong>
+                            <strong>{formatEnglishDate(dateObject)}</strong>
                           </div>
-                          <button className="close-popover" onClick={() => setOpenDate(null)} aria-label="关闭">
+                          <button className="close-popover" onClick={() => setOpenDate(null)} aria-label="Close">
                             ×
                           </button>
                         </div>
-                        <div className="muscle-picker compact" aria-label="训练部位选择">
+                        <div className="muscle-picker compact" aria-label="Workout category selection">
                           {muscleGroups.map((muscleGroup) => {
                             const active = entryGroups.includes(muscleGroup.id);
                             const disabled = !active && entryGroups.filter((group) => group !== "default").length >= 3 && muscleGroup.id !== "default";
@@ -337,7 +359,7 @@ export default function Home() {
                           }}
                           disabled={!entry}
                         >
-                          删除
+                          Delete
                         </button>
                       </div>
                     )}
@@ -353,7 +375,7 @@ export default function Home() {
   );
 }
 
-function Stat({ label, value, children }: { label: string; value: string; children?: ReactNode }) {
+function Stat({ label, value, children }: { label: string; value: ReactNode; children?: ReactNode }) {
   return (
     <div className="stat-card">
       <span>{label}</span>

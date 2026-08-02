@@ -81,18 +81,21 @@ h1 {
 }
 
 .stat-card strong {
-  display: block;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.28em;
+  align-items: baseline;
   margin-top: 6px;
   color: #0f172a;
   font-size: 1.55rem;
   letter-spacing: -0.04em;
 }
 
-.stat-ratio {
-  margin-top: 4px;
+.stat-card strong span {
   color: #64748b;
-  font-size: 0.74rem;
+  font-size: 0.78rem;
   font-weight: 800;
+  letter-spacing: 0;
 }
 
 .stat-breakdown {
