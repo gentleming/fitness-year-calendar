@@ -106,6 +106,13 @@ h1 {
   white-space: nowrap;
 }
 
+.muscle-icon {
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+  color: #334155;
+}
+
 .muscle-picker,
 .filters {
   display: flex;
@@ -155,6 +162,13 @@ h1 {
   border-color: color-mix(in srgb, var(--group-color, #2563eb) 55%, white);
   background: color-mix(in srgb, var(--group-color, #2563eb) 11%, white);
   color: var(--group-color, #2563eb);
+}
+
+.muscle-picker button .muscle-icon,
+.muscle-picker button.active .muscle-icon,
+.filters button .muscle-icon,
+.filters button.selected .muscle-icon {
+  color: #334155;
 }
 
 .muscle-picker button:disabled,
@@ -269,9 +283,14 @@ h1 {
   min-width: 0;
   border-radius: 8px;
   background: color-mix(in srgb, var(--icon-color, var(--group-color)) 16%, white);
-  color: var(--icon-color, var(--group-color));
+  color: #334155;
   font-size: 0.84rem;
   line-height: 1;
+}
+
+.day-icon .muscle-icon {
+  width: 0.92em;
+  height: 0.92em;
 }
 
 .day-icons {
