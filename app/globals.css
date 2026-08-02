@@ -275,11 +275,14 @@ h1 {
 }
 
 .day-icons {
+  position: absolute;
+  top: 50%;
+  left: 50%;
   display: grid;
   width: 82%;
   height: 82%;
   gap: 4px;
-  place-self: center;
+  transform: translate(-50%, -50%);
 }
 
 .day.count-1 .day-icons {
@@ -302,6 +305,7 @@ h1 {
   justify-content: center;
   width: 70%;
   gap: 6px;
+  transform: translate(-54%, -50%);
 }
 
 .day.count-2 .day-icon {
@@ -323,6 +327,7 @@ h1 {
   width: 68%;
   height: 80%;
   gap: 4px 6px;
+  transform: translate(-54%, -50%);
 }
 
 .day.count-3 .day-icon {
