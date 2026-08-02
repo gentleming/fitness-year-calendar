@@ -195,7 +195,7 @@ function parseCsvLine(line: string) {
   return cells.map((value) => value.trim());
 }
 
-function parseCsv(text: string, year: number, latestDateIso: string) {
+function parseCsv(text: string, latestAllowedYear: number, todayIso: string) {
   const rows = text
     .replace(/^\uFEFF/, "")
     .split(/\r?\n/)
@@ -216,10 +216,13 @@ function parseCsv(text: string, year: number, latestDateIso: string) {
     labelToGroup.set(copy.zh.groups[group.id as keyof typeof copy.zh.groups], group.id);
   });
 
-  return rows.slice(1).reduce<Checkins>((result, row) => {
+  return rows.slice(1).reduce<Record<number, Checkins>>((result, row) => {
     const cells = parseCsvLine(row);
     const date = cells[dateIndex];
-    if (!date || !date.startsWith(`${year}-`) || date > latestDateIso) return result;
+    const parsedYear = Number(date?.slice(0, 4));
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(parsedYear)) return result;
+    if (parsedYear < launchYear || parsedYear > latestAllowedYear) return result;
+    if (parsedYear === actualYear && date > todayIso) return result;
 
     const parsedGroups = (cells[groupsIndex] || "default")
       .split("|")
@@ -230,9 +233,12 @@ function parseCsv(text: string, year: number, latestDateIso: string) {
 
     if (!parsedGroups.length) return result;
 
-    result[date] = {
+    result[parsedYear] = {
+      ...(result[parsedYear] ?? {}),
+      [date]: {
       groups: parsedGroups,
       checkedAt: checkedAtIndex === -1 ? new Date().toISOString() : cells[checkedAtIndex] || new Date().toISOString(),
+      },
     };
     return result;
   }, {});
@@ -380,16 +386,19 @@ export default function Home() {
   }
 
   function exportCsv() {
+    const years = getYearOptions(actualYear);
     const rows = [
       ["date", "groups"],
-      ...Object.entries(checkins)
-        .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
-        .map(([date, entry]) => [date, normalizeGroups(entry).join("|")]),
+      ...years.flatMap((year) =>
+        Object.entries(checkinsByYear[year] ?? loadCheckins(year))
+          .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+          .map(([date, entry]) => [date, normalizeGroups(entry).join("|")]),
+      ),
     ];
     const csv = rows.map((row) => row.map(escapeCsvCell).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const link = document.createElement("a");
-    link.download = `fitness-calendar-${viewYear}.csv`;
+    link.download = "fitness-calendar-all-years.csv";
     link.href = URL.createObjectURL(blob);
     link.click();
     URL.revokeObjectURL(link.href);
@@ -399,11 +408,20 @@ export default function Home() {
   async function importCsv(file?: File) {
     if (!file) return;
     try {
-      const importedCheckins = parseCsv(file ? await file.text() : "", viewYear, viewYear === actualYear ? todayIso : `${viewYear}-12-31`);
-      updateCheckins((current) => ({
-        ...current,
-        ...importedCheckins,
-      }));
+      const importedCheckinsByYear = parseCsv(file ? await file.text() : "", actualYear, todayIso);
+      setCheckinsByYear((current) => {
+        const next = { ...current };
+        Object.entries(importedCheckinsByYear).forEach(([year, importedCheckins]) => {
+          const parsedYear = Number(year);
+          const nextYearCheckins = {
+            ...(next[parsedYear] ?? loadCheckins(parsedYear)),
+            ...importedCheckins,
+          };
+          localStorage.setItem(getStorageKey(parsedYear), JSON.stringify(nextYearCheckins));
+          next[parsedYear] = nextYearCheckins;
+        });
+        return next;
+      });
       setOpenDate(null);
       setIsDataMenuOpen(false);
     } catch {
