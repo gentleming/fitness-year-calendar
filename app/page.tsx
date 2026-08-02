@@ -1,13 +1,13 @@
 "use client";
 
 import type { CSSProperties, ReactNode } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
-const currentYear = new Date().getFullYear();
-const storageKey = `fitness-calendar-${currentYear}`;
+const launchYear = 2026;
+const actualYear = new Date().getFullYear();
 
 const muscleGroups = [
-  { id: "default", label: "Full Body", icon: "/icons/default.png", color: "#64748b" },
+  { id: "default", label: "Full Body", icon: "/icons/default.png", color: "#60a5fa" },
   { id: "chest", label: "Chest", icon: "/icons/chest.png", color: "#ef4444" },
   { id: "arms", label: "Arms", icon: "/icons/arms.png", color: "#f97316" },
   { id: "shoulders", label: "Shoulders", icon: "/icons/shoulders.png", color: "#0891b2" },
@@ -41,6 +41,24 @@ type Checkin = {
 };
 
 type Checkins = Record<string, Checkin>;
+
+function getStorageKey(year: number) {
+  return `fitness-calendar-${year}`;
+}
+
+function getYearOptions(year: number) {
+  const startYear = Math.min(launchYear, year);
+  return Array.from({ length: year - startYear + 1 }, (_, index) => startYear + index).reverse();
+}
+
+function loadCheckins(year: number) {
+  if (typeof window === "undefined") return {};
+  try {
+    return JSON.parse(localStorage.getItem(getStorageKey(year)) ?? "{}") as Checkins;
+  } catch {
+    return {};
+  }
+}
 
 function isoDate(date: Date) {
   const year = date.getFullYear();
@@ -87,22 +105,24 @@ function MuscleIcon({ src, label }: { src: string; label: string }) {
 export default function Home() {
   const today = new Date();
   const todayIso = isoDate(today);
-  const [checkins, setCheckins] = useState<Checkins>({});
+  const [viewYear, setViewYear] = useState(actualYear);
+  const [checkinsByYear, setCheckinsByYear] = useState<Record<number, Checkins>>({});
   const [selectedDate, setSelectedDate] = useState(todayIso);
   const [openDate, setOpenDate] = useState<string | null>(null);
   const [filter, setFilter] = useState("all");
+  const [isSharing, setIsSharing] = useState(false);
+  const captureRef = useRef<HTMLElement | null>(null);
+  const yearOptions = useMemo(() => getYearOptions(actualYear), []);
+  const checkins = checkinsByYear[viewYear] ?? {};
 
   useEffect(() => {
-    try {
-      setCheckins(JSON.parse(localStorage.getItem(storageKey) ?? "{}"));
-    } catch {
-      setCheckins({});
-    }
-  }, []);
+    setCheckinsByYear(Object.fromEntries(yearOptions.map((year) => [year, loadCheckins(year)])));
+  }, [yearOptions]);
 
   useEffect(() => {
-    localStorage.setItem(storageKey, JSON.stringify(checkins));
-  }, [checkins]);
+    setOpenDate(null);
+    setSelectedDate(viewYear === actualYear ? todayIso : `${viewYear}-12-31`);
+  }, [todayIso, viewYear]);
 
   useEffect(() => {
     if (!openDate) return;
@@ -118,7 +138,7 @@ export default function Home() {
     return () => document.removeEventListener("pointerdown", closePopoverOnOutsideClick);
   }, [openDate]);
 
-  const days = useMemo(() => getDaysInYear(currentYear), []);
+  const days = useMemo(() => getDaysInYear(viewYear), [viewYear]);
   const months = useMemo(
     () =>
       monthLabels.map((label, monthIndex) => ({
@@ -129,7 +149,7 @@ export default function Home() {
   );
 
   const totalWorkoutDays = Object.keys(checkins).length;
-  const elapsedDays = Math.min(days.length, getElapsedDaysInYear(today));
+  const elapsedDays = viewYear === actualYear ? Math.min(days.length, getElapsedDaysInYear(today)) : days.length;
   const workoutCounts = useMemo(() => {
     const counts = Object.fromEntries(muscleGroups.map((group) => [group.id, 0])) as Record<string, number>;
     Object.values(checkins).forEach((entry) => {
@@ -140,11 +160,23 @@ export default function Home() {
     return counts;
   }, [checkins]);
 
+  function updateCheckins(updater: (current: Checkins) => Checkins) {
+    setCheckinsByYear((current) => {
+      const currentYearCheckins = current[viewYear] ?? loadCheckins(viewYear);
+      const nextYearCheckins = updater(currentYearCheckins);
+      localStorage.setItem(getStorageKey(viewYear), JSON.stringify(nextYearCheckins));
+      return {
+        ...current,
+        [viewYear]: nextYearCheckins,
+      };
+    });
+  }
+
   function toggleCheckin(dateIso: string, group = "default") {
     if (dateIso > todayIso) return;
     setSelectedDate(dateIso);
     setOpenDate(dateIso);
-    setCheckins((current) => {
+    updateCheckins((current) => {
       const next = { ...current };
       if (group === "remove" || next[dateIso]?.group === group) {
         delete next[dateIso];
@@ -157,7 +189,7 @@ export default function Home() {
 
   function setSelectedGroup(group: string) {
     if (!openDate || openDate > todayIso) return;
-    setCheckins((current) => {
+    updateCheckins((current) => {
       const currentEntry = current[openDate];
       const currentGroups = normalizeGroups(currentEntry);
       let nextGroups: string[];
@@ -187,6 +219,32 @@ export default function Home() {
     });
   }
 
+  async function shareAsImage() {
+    const node = captureRef.current;
+    if (!node) return;
+
+    setOpenDate(null);
+    setIsSharing(true);
+    try {
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      await document.fonts.ready;
+      const { toPng } = await import("html-to-image");
+      const dataUrl = await toPng(node, {
+        backgroundColor: "#f3f6fb",
+        cacheBust: true,
+        pixelRatio: 2,
+      });
+      const link = document.createElement("a");
+      link.download = `fitness-calendar-${viewYear}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch {
+      window.alert("Could not generate the image. Please try again.");
+    } finally {
+      setIsSharing(false);
+    }
+  }
+
   const visibleMonths = months.map((month) => ({
     ...month,
     days: month.days.filter((date) => {
@@ -199,10 +257,24 @@ export default function Home() {
 
   return (
     <main className="app-shell">
+      <section className="toolbar" aria-label="Calendar actions">
+        <div className="year-switcher" aria-label="Year selector">
+          {yearOptions.map((year) => (
+            <button key={year} className={viewYear === year ? "selected" : ""} onClick={() => setViewYear(year)}>
+              {year}
+            </button>
+          ))}
+        </div>
+        <button className="share-button" onClick={shareAsImage} disabled={isSharing}>
+          {isSharing ? "Generating..." : "Share"}
+        </button>
+      </section>
+
+      <section className="share-capture" ref={captureRef}>
       <section className="hero">
         <div className="hero-card">
           <h1>
-            <span>{currentYear}</span>
+            <span>{viewYear}</span>
             <span>Fitness Calendar</span>
           </h1>
         </div>
@@ -292,7 +364,7 @@ export default function Home() {
                         setSelectedDate(dateIso);
                         setOpenDate(dateIso);
                         if (!entry) {
-                          setCheckins((current) => ({
+                          updateCheckins((current) => ({
                             ...current,
                             [dateIso]: {
                               groups: ["default"],
@@ -350,7 +422,7 @@ export default function Home() {
                         <button
                           className="popover-remove"
                           onClick={() => {
-                            setCheckins((current) => {
+                            updateCheckins((current) => {
                               const next = { ...current };
                               delete next[dateIso];
                               return next;
@@ -370,6 +442,7 @@ export default function Home() {
             </article>
           );
         })}
+      </section>
       </section>
     </main>
   );

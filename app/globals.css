@@ -27,6 +27,67 @@ button {
   padding: 28px 22px 44px;
 }
 
+.toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.year-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.year-switcher button,
+.share-button {
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #334155;
+  cursor: pointer;
+  font-size: 0.86rem;
+  font-weight: 800;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease;
+}
+
+.year-switcher button {
+  padding: 7px 12px;
+}
+
+.share-button {
+  padding: 8px 14px;
+}
+
+.year-switcher button:hover,
+.share-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(37, 99, 235, 0.35);
+}
+
+.year-switcher button.selected,
+.share-button {
+  border-color: rgba(96, 165, 250, 0.52);
+  background: rgba(219, 234, 254, 0.74);
+  color: #2563eb;
+}
+
+.share-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.share-capture {
+  padding: 0;
+  background: #f3f6fb;
+}
+
 .hero {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(220px, 0.32fr);
@@ -495,6 +556,15 @@ h1 {
 @media (max-width: 680px) {
   .app-shell {
     padding: 20px 14px 36px;
+  }
+
+  .toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .share-button {
+    align-self: flex-start;
   }
 
   .month-card,
