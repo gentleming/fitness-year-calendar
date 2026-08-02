@@ -6,21 +6,23 @@ import { useEffect, useMemo, useRef, useState } from "react";
 const launchYear = 2025;
 const actualYear = new Date().getFullYear();
 const languageStorageKey = "fitness-calendar-language";
+const themeStorageKey = "fitness-calendar-theme";
 
 const muscleGroups = [
-  { id: "default", icon: "/icons/default.png", color: "#3b82f6" },
-  { id: "chest", icon: "/icons/chest.png", color: "#ef4444" },
-  { id: "arms", icon: "/icons/arms.png", color: "#f97316" },
-  { id: "shoulders", icon: "/icons/shoulders.png", color: "#0891b2" },
-  { id: "back", icon: "/icons/back.png", color: "#0f766e" },
-  { id: "legs", icon: "/icons/legs.png", color: "#16a34a" },
-  { id: "core", icon: "/icons/core.png", color: "#a855f7" },
-  { id: "cardio", icon: "/icons/cardio.png", color: "#db2777" },
+  { id: "default", icon: "/icons/default.png", darkIcon: "/icons/default-dark.png", color: "#3b82f6" },
+  { id: "chest", icon: "/icons/chest.png", darkIcon: "/icons/chest-dark.png", color: "#ef4444" },
+  { id: "arms", icon: "/icons/arms.png", darkIcon: "/icons/arms-dark.png", color: "#f97316" },
+  { id: "shoulders", icon: "/icons/shoulders.png", darkIcon: "/icons/shoulders-dark.png", color: "#0891b2" },
+  { id: "back", icon: "/icons/back.png", darkIcon: "/icons/back-dark.png", color: "#0f766e" },
+  { id: "legs", icon: "/icons/legs.png", darkIcon: "/icons/legs-dark.png", color: "#16a34a" },
+  { id: "core", icon: "/icons/core.png", darkIcon: "/icons/core-dark.png", color: "#a855f7" },
+  { id: "cardio", icon: "/icons/cardio.png", darkIcon: "/icons/cardio-dark.png", color: "#db2777" },
 ];
 
 const groupMap = Object.fromEntries(muscleGroups.map((group) => [group.id, group]));
 
 type Language = "en" | "zh";
+type Theme = "light" | "dark";
 
 const copy = {
   en: {
@@ -165,6 +167,10 @@ function MuscleIcon({ src, label }: { src: string; label: string }) {
   return <img className="muscle-icon" src={src} alt="" aria-hidden="true" draggable={false} data-label={label} />;
 }
 
+function getMuscleIcon(group: (typeof muscleGroups)[number], theme: Theme) {
+  return theme === "dark" ? group.darkIcon : group.icon;
+}
+
 function escapeCsvCell(value: string) {
   return `"${value.replaceAll('"', '""')}"`;
 }
@@ -256,6 +262,7 @@ export default function Home() {
   const [isYearMenuOpen, setIsYearMenuOpen] = useState(false);
   const [isDataMenuOpen, setIsDataMenuOpen] = useState(false);
   const [language, setLanguage] = useState<Language>("en");
+  const [theme, setTheme] = useState<Theme>("light");
   const captureRef = useRef<HTMLElement | null>(null);
   const yearMenuRef = useRef<HTMLDivElement | null>(null);
   const dataMenuRef = useRef<HTMLDivElement | null>(null);
@@ -267,7 +274,9 @@ export default function Home() {
   useEffect(() => {
     setCheckinsByYear(Object.fromEntries(yearOptions.map((year) => [year, loadCheckins(year)])));
     const storedLanguage = localStorage.getItem(languageStorageKey);
+    const storedTheme = localStorage.getItem(themeStorageKey);
     if (storedLanguage === "en" || storedLanguage === "zh") setLanguage(storedLanguage);
+    if (storedTheme === "light" || storedTheme === "dark") setTheme(storedTheme);
   }, [yearOptions]);
 
   useEffect(() => {
@@ -442,7 +451,7 @@ export default function Home() {
       await document.fonts.ready;
       const { toPng } = await import("html-to-image");
       const dataUrl = await toPng(node, {
-        backgroundColor: "#ffffff",
+        backgroundColor: theme === "dark" ? "#0f172a" : "#ffffff",
         cacheBust: true,
         pixelRatio: 2,
         width: node.scrollWidth,
@@ -474,7 +483,7 @@ export default function Home() {
   }));
 
   return (
-    <main className="app-shell">
+    <main className={`app-shell theme-${theme}`}>
       <section className="toolbar" aria-label={text.calendarActions}>
         <div className="year-switcher" ref={yearMenuRef}>
           <button className="year-trigger" onClick={() => setIsYearMenuOpen((open) => !open)} aria-expanded={isYearMenuOpen} aria-label={text.yearSelector}>
@@ -527,6 +536,17 @@ export default function Home() {
           >
             {text.languageToggle}
           </button>
+          <button
+            className="theme-toggle"
+            onClick={() => {
+              const nextTheme = theme === "light" ? "dark" : "light";
+              setTheme(nextTheme);
+              localStorage.setItem(themeStorageKey, nextTheme);
+            }}
+            aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+          >
+            <span aria-hidden="true">{theme === "light" ? "🌙" : "☀️"}</span>
+          </button>
           <button className="share-button" onClick={shareAsImage} disabled={isSharing}>
             {isSharing ? text.generating : text.share}
           </button>
@@ -552,7 +572,7 @@ export default function Home() {
             <div className="stat-breakdown">
               {muscleGroups.map((group) => (
                 <span className="stat-item" key={group.id}>
-                  <MuscleIcon src={group.icon} label={text.groups[group.id as keyof typeof text.groups]} />
+                  <MuscleIcon src={getMuscleIcon(group, theme)} label={text.groups[group.id as keyof typeof text.groups]} />
                   <span className="stat-name">{text.groups[group.id as keyof typeof text.groups]}</span>
                   <span className="stat-count">{workoutCounts[group.id] ?? 0}</span>
                 </span>
@@ -648,7 +668,7 @@ export default function Home() {
                         <span className="day-icons" aria-hidden="true">
                           {displayGroups.map((group) => (
                             <span className="day-icon" key={group.id} style={{ "--icon-color": group.color } as CSSProperties}>
-                              <MuscleIcon src={group.icon} label={text.groups[group.id as keyof typeof text.groups]} />
+                              <MuscleIcon src={getMuscleIcon(group, theme)} label={text.groups[group.id as keyof typeof text.groups]} />
                             </span>
                           ))}
                         </span>
@@ -680,7 +700,7 @@ export default function Home() {
                                 onClick={() => setSelectedGroup(muscleGroup.id)}
                                 disabled={disabled}
                               >
-                                <MuscleIcon src={muscleGroup.icon} label={text.groups[muscleGroup.id as keyof typeof text.groups]} />
+                                <MuscleIcon src={getMuscleIcon(muscleGroup, theme)} label={text.groups[muscleGroup.id as keyof typeof text.groups]} />
                                 {text.groups[muscleGroup.id as keyof typeof text.groups]}
                               </button>
                             );
