@@ -30,10 +30,14 @@ const copy = {
     days: "days",
     ofDays: "of {days} days",
     generating: "Generating...",
+    importExport: "Import / Export",
+    exportCsv: "Export CSV",
+    importCsv: "Import from file",
     share: "Share",
     close: "Close",
     delete: "Delete",
     alert: "Could not generate the image. Please try again.",
+    importAlert: "Could not import the CSV file. Please check the format.",
     dateFilters: "Date filters",
     yearSelector: "Year selector",
     calendarActions: "Calendar actions",
@@ -62,10 +66,14 @@ const copy = {
     days: "天",
     ofDays: "共 {days} 天",
     generating: "生成中...",
+    importExport: "导入 / 导出",
+    exportCsv: "导出 CSV",
+    importCsv: "从文件导入",
     share: "分享",
     close: "关闭",
     delete: "删除",
     alert: "图片生成失败，请重试。",
+    importAlert: "CSV 导入失败，请检查文件格式。",
     dateFilters: "日期筛选",
     yearSelector: "年份选择",
     calendarActions: "日历操作",
@@ -157,6 +165,79 @@ function MuscleIcon({ src, label }: { src: string; label: string }) {
   return <img className="muscle-icon" src={src} alt="" aria-hidden="true" draggable={false} data-label={label} />;
 }
 
+function escapeCsvCell(value: string) {
+  return `"${value.replaceAll('"', '""')}"`;
+}
+
+function parseCsvLine(line: string) {
+  const cells: string[] = [];
+  let cell = "";
+  let quoted = false;
+
+  for (let index = 0; index < line.length; index += 1) {
+    const character = line[index];
+    const nextCharacter = line[index + 1];
+
+    if (character === '"' && quoted && nextCharacter === '"') {
+      cell += '"';
+      index += 1;
+    } else if (character === '"') {
+      quoted = !quoted;
+    } else if (character === "," && !quoted) {
+      cells.push(cell);
+      cell = "";
+    } else {
+      cell += character;
+    }
+  }
+
+  cells.push(cell);
+  return cells.map((value) => value.trim());
+}
+
+function parseCsv(text: string, year: number, latestDateIso: string) {
+  const rows = text
+    .replace(/^\uFEFF/, "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  if (rows.length < 2) return {};
+
+  const header = parseCsvLine(rows[0]).map((column) => column.toLowerCase());
+  const dateIndex = header.indexOf("date");
+  const groupsIndex = header.indexOf("groups");
+  const checkedAtIndex = header.indexOf("checkedat");
+  if (dateIndex === -1 || groupsIndex === -1) throw new Error("Invalid CSV header");
+
+  const labelToGroup = new Map<string, string>();
+  muscleGroups.forEach((group) => {
+    labelToGroup.set(group.id.toLowerCase(), group.id);
+    labelToGroup.set(copy.en.groups[group.id as keyof typeof copy.en.groups].toLowerCase(), group.id);
+    labelToGroup.set(copy.zh.groups[group.id as keyof typeof copy.zh.groups], group.id);
+  });
+
+  return rows.slice(1).reduce<Checkins>((result, row) => {
+    const cells = parseCsvLine(row);
+    const date = cells[dateIndex];
+    if (!date || !date.startsWith(`${year}-`) || date > latestDateIso) return result;
+
+    const parsedGroups = (cells[groupsIndex] || "default")
+      .split("|")
+      .map((group) => labelToGroup.get(group.trim().toLowerCase()) ?? labelToGroup.get(group.trim()))
+      .filter((group): group is string => Boolean(group))
+      .filter((group, index, groups) => groups.indexOf(group) === index)
+      .slice(0, 3);
+
+    if (!parsedGroups.length) return result;
+
+    result[date] = {
+      groups: parsedGroups,
+      checkedAt: cells[checkedAtIndex] || new Date().toISOString(),
+    };
+    return result;
+  }, {});
+}
+
 export default function Home() {
   const today = new Date();
   const todayIso = isoDate(today);
@@ -166,8 +247,11 @@ export default function Home() {
   const [openDate, setOpenDate] = useState<string | null>(null);
   const [filter, setFilter] = useState("all");
   const [isSharing, setIsSharing] = useState(false);
+  const [isDataMenuOpen, setIsDataMenuOpen] = useState(false);
   const [language, setLanguage] = useState<Language>("en");
   const captureRef = useRef<HTMLElement | null>(null);
+  const dataMenuRef = useRef<HTMLDivElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const yearOptions = useMemo(() => getYearOptions(actualYear), []);
   const checkins = checkinsByYear[viewYear] ?? {};
   const text = copy[language];
@@ -196,6 +280,19 @@ export default function Home() {
     document.addEventListener("pointerdown", closePopoverOnOutsideClick);
     return () => document.removeEventListener("pointerdown", closePopoverOnOutsideClick);
   }, [openDate]);
+
+  useEffect(() => {
+    if (!isDataMenuOpen) return;
+
+    function closeMenuOnOutsideClick(event: PointerEvent) {
+      const target = event.target as HTMLElement | null;
+      if (!target || dataMenuRef.current?.contains(target)) return;
+      setIsDataMenuOpen(false);
+    }
+
+    document.addEventListener("pointerdown", closeMenuOnOutsideClick);
+    return () => document.removeEventListener("pointerdown", closeMenuOnOutsideClick);
+  }, [isDataMenuOpen]);
 
   const days = useMemo(() => getDaysInYear(viewYear), [viewYear]);
   const months = useMemo(
@@ -278,6 +375,40 @@ export default function Home() {
     });
   }
 
+  function exportCsv() {
+    const rows = [
+      ["date", "groups", "checkedAt"],
+      ...Object.entries(checkins)
+        .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+        .map(([date, entry]) => [date, normalizeGroups(entry).join("|"), entry.checkedAt]),
+    ];
+    const csv = rows.map((row) => row.map(escapeCsvCell).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const link = document.createElement("a");
+    link.download = `fitness-calendar-${viewYear}.csv`;
+    link.href = URL.createObjectURL(blob);
+    link.click();
+    URL.revokeObjectURL(link.href);
+    setIsDataMenuOpen(false);
+  }
+
+  async function importCsv(file?: File) {
+    if (!file) return;
+    try {
+      const importedCheckins = parseCsv(file ? await file.text() : "", viewYear, viewYear === actualYear ? todayIso : `${viewYear}-12-31`);
+      updateCheckins((current) => ({
+        ...current,
+        ...importedCheckins,
+      }));
+      setOpenDate(null);
+      setIsDataMenuOpen(false);
+    } catch {
+      window.alert(text.importAlert);
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
   async function shareAsImage() {
     const node = captureRef.current;
     if (!node) return;
@@ -331,6 +462,24 @@ export default function Home() {
           ))}
         </div>
         <div className="toolbar-actions">
+          <div className="data-menu" ref={dataMenuRef}>
+            <button className="utility-button" onClick={() => setIsDataMenuOpen((open) => !open)} aria-expanded={isDataMenuOpen}>
+              {text.importExport}
+            </button>
+            {isDataMenuOpen && (
+              <div className="data-menu-panel">
+                <button onClick={exportCsv}>{text.exportCsv}</button>
+                <button onClick={() => fileInputRef.current?.click()}>{text.importCsv}</button>
+              </div>
+            )}
+            <input
+              ref={fileInputRef}
+              className="file-input"
+              type="file"
+              accept=".csv,text/csv"
+              onChange={(event) => void importCsv(event.target.files?.[0])}
+            />
+          </div>
           <button
             className="utility-button"
             onClick={() => {

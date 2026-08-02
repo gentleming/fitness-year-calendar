@@ -42,6 +42,46 @@ button {
   justify-content: flex-end;
 }
 
+.data-menu {
+  position: relative;
+}
+
+.data-menu-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  display: grid;
+  min-width: 168px;
+  padding: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(18px);
+}
+
+.data-menu-panel button {
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: #334155;
+  cursor: pointer;
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.data-menu-panel button:hover {
+  background: rgba(219, 234, 254, 0.66);
+  color: #2563eb;
+}
+
+.file-input {
+  display: none;
+}
+
 .year-switcher {
   display: flex;
   flex-wrap: wrap;
