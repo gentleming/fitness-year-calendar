@@ -286,7 +286,6 @@ export default function Home() {
         </div>
         <div className="stats-grid">
           <Stat
-            label="Workout"
             value={
               <>
                 {totalWorkoutDays} days <span>of {elapsedDays} days</span>
@@ -454,10 +453,10 @@ export default function Home() {
   );
 }
 
-function Stat({ label, value, children }: { label: string; value: ReactNode; children?: ReactNode }) {
+function Stat({ label, value, children }: { label?: string; value: ReactNode; children?: ReactNode }) {
   return (
     <div className="stat-card">
-      <span>{label}</span>
+      {label && <span>{label}</span>}
       <strong>{value}</strong>
       {children}
     </div>
