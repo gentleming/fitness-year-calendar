@@ -225,15 +225,26 @@ h1 {
   margin-top: 12px;
 }
 
-.stat-breakdown span {
+.stat-breakdown .stat-item {
   display: inline-flex;
-  gap: 4px;
+  gap: 5px;
   align-items: center;
   min-width: 0;
   color: #475569;
   font-size: 0.74rem;
   font-weight: 800;
   white-space: nowrap;
+}
+
+.stat-breakdown .stat-name {
+  color: inherit;
+  font: inherit;
+}
+
+.stat-breakdown .stat-count {
+  margin-left: 4px;
+  color: inherit;
+  font: inherit;
 }
 
 .muscle-icon {

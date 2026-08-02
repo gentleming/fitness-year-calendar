@@ -365,9 +365,10 @@ export default function Home() {
           >
             <div className="stat-breakdown">
               {muscleGroups.map((group) => (
-                <span key={group.id}>
+                <span className="stat-item" key={group.id}>
                   <MuscleIcon src={group.icon} label={text.groups[group.id as keyof typeof text.groups]} />
-                  {text.groups[group.id as keyof typeof text.groups]} {workoutCounts[group.id] ?? 0}
+                  <span className="stat-name">{text.groups[group.id as keyof typeof text.groups]}</span>
+                  <span className="stat-count">{workoutCounts[group.id] ?? 0}</span>
                 </span>
               ))}
             </div>
