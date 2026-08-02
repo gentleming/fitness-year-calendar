@@ -14,7 +14,6 @@ const muscleGroups = [
   { id: "legs", label: "腿部", icon: "🦵", color: "#16a34a" },
   { id: "core", label: "核心", icon: "🔥", color: "#a855f7" },
   { id: "cardio", label: "有氧", icon: "❤️", color: "#db2777" },
-  { id: "mobility", label: "拉伸", icon: "🧘", color: "#0f766e" },
 ];
 
 const groupMap = Object.fromEntries(muscleGroups.map((group) => [group.id, group]));
@@ -67,6 +66,20 @@ export default function Home() {
   useEffect(() => {
     localStorage.setItem(storageKey, JSON.stringify(checkins));
   }, [checkins]);
+
+  useEffect(() => {
+    if (!openDate) return;
+
+    function closePopoverOnOutsideClick(event: PointerEvent) {
+      const target = event.target as HTMLElement | null;
+      if (!target) return;
+      if (target.closest(".checkin-popover") || target.closest(".day")) return;
+      setOpenDate(null);
+    }
+
+    document.addEventListener("pointerdown", closePopoverOnOutsideClick);
+    return () => document.removeEventListener("pointerdown", closePopoverOnOutsideClick);
+  }, [openDate]);
 
   const days = useMemo(() => getDaysInYear(currentYear), []);
   const months = useMemo(
@@ -168,7 +181,7 @@ export default function Home() {
                 {month.days.map((date) => {
                 const dateIso = isoDate(date);
                 const entry = checkins[dateIso];
-                const group = groupMap[entry?.group ?? "default"];
+                const group = groupMap[entry?.group ?? "default"] ?? groupMap.default;
                 const isFuture = dateIso > todayIso;
                 const isSelected = dateIso === selectedDate;
                 const isPopoverOpen = openDate === dateIso;
