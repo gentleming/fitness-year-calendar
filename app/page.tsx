@@ -232,7 +232,7 @@ function parseCsv(text: string, year: number, latestDateIso: string) {
 
     result[date] = {
       groups: parsedGroups,
-      checkedAt: cells[checkedAtIndex] || new Date().toISOString(),
+      checkedAt: checkedAtIndex === -1 ? new Date().toISOString() : cells[checkedAtIndex] || new Date().toISOString(),
     };
     return result;
   }, {});
@@ -377,10 +377,10 @@ export default function Home() {
 
   function exportCsv() {
     const rows = [
-      ["date", "groups", "checkedAt"],
+      ["date", "groups"],
       ...Object.entries(checkins)
         .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
-        .map(([date, entry]) => [date, normalizeGroups(entry).join("|"), entry.checkedAt]),
+        .map(([date, entry]) => [date, normalizeGroups(entry).join("|")]),
     ];
     const csv = rows.map((row) => row.map(escapeCsvCell).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
