@@ -239,13 +239,14 @@ export default function Home() {
                 const entryGroups = normalizeGroups(entry);
                 const displayGroups = entryGroups.map((group) => groupMap[group] ?? groupMap.default);
                 const primaryGroup = displayGroups[0] ?? groupMap.default;
+                const backgroundGroup = displayGroups.length > 1 ? groupMap.default : primaryGroup;
                 const isFuture = dateIso > todayIso;
                 const isSelected = dateIso === selectedDate;
                 const isPopoverOpen = openDate === dateIso;
                 const dateObject = new Date(`${dateIso}T12:00:00`);
                 const popoverSide = date.getDay() === 0 || date.getDay() === 6 ? "popover-left" : "popover-right";
                 const dayStyle = {
-                  "--group-color": primaryGroup.color,
+                  "--group-color": backgroundGroup.color,
                   "--slot-1": displayGroups[0]?.color ?? primaryGroup.color,
                   "--slot-2": displayGroups[1]?.color ?? primaryGroup.color,
                   "--slot-3": displayGroups[2]?.color ?? primaryGroup.color,

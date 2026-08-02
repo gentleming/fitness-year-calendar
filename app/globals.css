@@ -317,7 +317,7 @@ h1 {
 }
 
 .day.count-2 {
-  background: linear-gradient(90deg, color-mix(in srgb, var(--slot-1) 16%, white) 0 50%, color-mix(in srgb, var(--slot-2) 16%, white) 50% 100%);
+  background: color-mix(in srgb, var(--group-color) 16%, white);
 }
 
 .day.count-2 .day-icons {
@@ -338,8 +338,7 @@ h1 {
 }
 
 .day.count-3 {
-  background:
-    linear-gradient(90deg, color-mix(in srgb, var(--slot-1) 16%, white) 0 50%, color-mix(in srgb, var(--slot-2) 16%, white) 50% 100%);
+  background: color-mix(in srgb, var(--group-color) 16%, white);
 }
 
 .day.count-3 .day-icons {
@@ -372,11 +371,11 @@ h1 {
 }
 
 .day.checked.count-2 {
-  background: linear-gradient(90deg, color-mix(in srgb, var(--slot-1) 16%, white) 0 50%, color-mix(in srgb, var(--slot-2) 16%, white) 50% 100%);
+  background: color-mix(in srgb, var(--group-color) 16%, white);
 }
 
 .day.checked.count-3 {
-  background: linear-gradient(90deg, color-mix(in srgb, var(--slot-1) 16%, white) 0 50%, color-mix(in srgb, var(--slot-2) 16%, white) 50% 100%);
+  background: color-mix(in srgb, var(--group-color) 16%, white);
 }
 
 .day.checked .day-number {
