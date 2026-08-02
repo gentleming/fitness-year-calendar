@@ -233,6 +233,12 @@ export default function Home() {
         backgroundColor: "#f3f6fb",
         cacheBust: true,
         pixelRatio: 2,
+        width: node.scrollWidth,
+        height: node.scrollHeight,
+        style: {
+          width: `${node.scrollWidth}px`,
+          height: `${node.scrollHeight}px`,
+        },
       });
       const link = document.createElement("a");
       link.download = `fitness-calendar-${viewYear}.png`;
@@ -270,7 +276,7 @@ export default function Home() {
         </button>
       </section>
 
-      <section className="share-capture" ref={captureRef}>
+      <section className={`share-capture ${isSharing ? "exporting" : ""}`} ref={captureRef}>
       <section className="hero">
         <div className="hero-card">
           <h1>

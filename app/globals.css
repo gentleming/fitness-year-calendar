@@ -88,6 +88,36 @@ button {
   background: #f3f6fb;
 }
 
+.share-capture.exporting {
+  width: 1276px;
+  max-width: none;
+  background: #f3f6fb;
+}
+
+.share-capture.exporting *,
+.share-capture.exporting *::before,
+.share-capture.exporting *::after {
+  transition: none !important;
+}
+
+.share-capture.exporting .month-card,
+.share-capture.exporting .stat-card,
+.share-capture.exporting .checkin-popover {
+  background: #ffffff;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.share-capture.exporting .month-card,
+.share-capture.exporting .stat-card {
+  border-color: rgba(148, 163, 184, 0.22);
+}
+
+.share-capture.exporting .day:hover:not(:disabled) {
+  transform: none;
+  box-shadow: none;
+}
+
 .hero {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(220px, 0.32fr);
