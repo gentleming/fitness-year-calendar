@@ -551,36 +551,36 @@ export default function Home() {
       </section>
 
       <section className={`share-capture ${isSharing ? "exporting" : ""}`} ref={captureRef}>
-      <section className="hero">
-        <div className="hero-card">
-          <h1>
-            <span>{viewYear}</span>
-            <span>{text.title}</span>
-          </h1>
-          <button className="share-button hero-share-button" onClick={shareAsImage} disabled={isSharing}>
-            {isSharing ? text.generating : text.share}
-          </button>
-        </div>
-        <div className="stats-grid">
-          <Stat
-            value={
-              <>
-                {totalWorkoutDays} {text.days} <span>{text.ofDays.replace("{days}", String(elapsedDays))}</span>
-              </>
-            }
-          >
-            <div className="stat-breakdown">
-              {muscleGroups.map((group) => (
-                <span className="stat-item" key={group.id}>
-                  <MuscleIcon src={getMuscleIcon(group, theme)} label={text.groups[group.id as keyof typeof text.groups]} />
-                  <span className="stat-name">{text.groups[group.id as keyof typeof text.groups]}</span>
-                  <span className="stat-count">{workoutCounts[group.id] ?? 0}</span>
-                </span>
-              ))}
-            </div>
-          </Stat>
-        </div>
-      </section>
+        <section className="hero">
+          <div className="hero-card">
+            <h1>
+              <span>{viewYear}</span>
+              <span>{text.title}</span>
+            </h1>
+            <button className="share-button hero-share-button" onClick={shareAsImage} disabled={isSharing}>
+              {isSharing ? text.generating : text.share}
+            </button>
+          </div>
+          <div className="stats-grid">
+            <Stat
+              value={
+                <>
+                  {totalWorkoutDays} {text.days} <span>{text.ofDays.replace("{days}", String(elapsedDays))}</span>
+                </>
+              }
+            >
+              <div className="stat-breakdown">
+                {muscleGroups.map((group) => (
+                  <span className="stat-item" key={group.id}>
+                    <MuscleIcon src={getMuscleIcon(group, theme)} label={text.groups[group.id as keyof typeof text.groups]} />
+                    <span className="stat-name">{text.groups[group.id as keyof typeof text.groups]}</span>
+                    <span className="stat-count">{workoutCounts[group.id] ?? 0}</span>
+                  </span>
+                ))}
+              </div>
+            </Stat>
+          </div>
+        </section>
 
       <section className="filters" aria-label={text.dateFilters}>
         <button className={filter === "all" ? "selected" : ""} onClick={() => setFilter("all")}>

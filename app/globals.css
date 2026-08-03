@@ -309,6 +309,10 @@ button {
   display: none;
 }
 
+.share-capture.exporting .filters {
+  display: none;
+}
+
 .share-capture.exporting *,
 .share-capture.exporting *::before,
 .share-capture.exporting *::after {
@@ -369,8 +373,8 @@ button {
 .hero-card {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  justify-content: flex-start;
+  gap: 16px;
   padding: 4px 0;
 }
 
