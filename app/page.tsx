@@ -547,9 +547,6 @@ export default function Home() {
           >
             <span aria-hidden="true">{theme === "light" ? "🌙" : "☀️"}</span>
           </button>
-          <button className="share-button" onClick={shareAsImage} disabled={isSharing}>
-            {isSharing ? text.generating : text.share}
-          </button>
         </div>
       </section>
 
@@ -560,6 +557,9 @@ export default function Home() {
             <span>{viewYear}</span>
             <span>{text.title}</span>
           </h1>
+          <button className="share-button hero-share-button" onClick={shareAsImage} disabled={isSharing}>
+            {isSharing ? text.generating : text.share}
+          </button>
         </div>
         <div className="stats-grid">
           <Stat

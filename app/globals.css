@@ -170,6 +170,10 @@ button {
   opacity: 0.65;
 }
 
+.hero-share-button {
+  flex: 0 0 auto;
+}
+
 .theme-dark {
   color: #e5edf8;
 }
@@ -301,6 +305,10 @@ button {
   background: #ffffff;
 }
 
+.share-capture.exporting .hero-share-button {
+  display: none;
+}
+
 .share-capture.exporting *,
 .share-capture.exporting *::before,
 .share-capture.exporting *::after {
@@ -361,6 +369,8 @@ button {
 .hero-card {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   padding: 4px 0;
 }
 
@@ -369,6 +379,7 @@ h1 {
   flex-wrap: wrap;
   gap: 0.22em;
   align-items: baseline;
+  min-width: 0;
   margin: 0;
   color: #0f172a;
   font-size: clamp(1.85rem, 4vw, 3.2rem);
