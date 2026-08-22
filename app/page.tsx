@@ -125,6 +125,17 @@ function loadCheckins(year: number) {
   }
 }
 
+function loadCheckinsByYear(years: number[]) {
+  return Object.fromEntries(years.map((year) => [year, loadCheckins(year)])) as Record<number, Checkins>;
+}
+
+function persistCheckinsByYear(checkinsByYear: Record<number, Checkins>) {
+  if (typeof window === "undefined") return;
+  Object.entries(checkinsByYear).forEach(([year, checkins]) => {
+    localStorage.setItem(getStorageKey(Number(year)), JSON.stringify(checkins));
+  });
+}
+
 function isoDate(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -161,6 +172,54 @@ function normalizeGroups(entry?: Checkin) {
   const groups = Array.isArray(entry.groups) ? entry.groups : entry.group ? [entry.group] : [];
   const validGroups = groups.filter((group, index) => groupMap[group] && groups.indexOf(group) === index);
   return validGroups.length ? validGroups.slice(0, 3) : ["default"];
+}
+
+function normalizeCheckinsByYear(input: Record<string | number, Checkins>, latestAllowedYear: number, todayIso: string) {
+  return Object.entries(input).reduce<Record<number, Checkins>>((result, [year, checkins]) => {
+    const parsedYear = Number(year);
+    if (!Number.isInteger(parsedYear) || parsedYear < launchYear || parsedYear > latestAllowedYear) return result;
+
+    Object.entries(checkins ?? {}).forEach(([date, entry]) => {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number(date.slice(0, 4)) !== parsedYear) return;
+      if (parsedYear === actualYear && date > todayIso) return;
+      const groups = normalizeGroups(entry);
+      result[parsedYear] = {
+        ...(result[parsedYear] ?? {}),
+        [date]: {
+          groups,
+          checkedAt: entry.checkedAt || new Date().toISOString(),
+        },
+      };
+    });
+
+    return result;
+  }, {});
+}
+
+function mergeCheckinsByYear(local: Record<number, Checkins>, remote: Record<number, Checkins>) {
+  const years = new Set([...Object.keys(local), ...Object.keys(remote)].map(Number));
+  const merged: Record<number, Checkins> = {};
+
+  years.forEach((year) => {
+    const dates = new Set([...Object.keys(local[year] ?? {}), ...Object.keys(remote[year] ?? {})]);
+    dates.forEach((date) => {
+      const localEntry = local[year]?.[date];
+      const remoteEntry = remote[year]?.[date];
+      const entry =
+        localEntry && remoteEntry
+          ? Date.parse(remoteEntry.checkedAt) > Date.parse(localEntry.checkedAt)
+            ? remoteEntry
+            : localEntry
+          : localEntry ?? remoteEntry;
+      if (!entry) return;
+      merged[year] = {
+        ...(merged[year] ?? {}),
+        [date]: entry,
+      };
+    });
+  });
+
+  return merged;
 }
 
 function MuscleIcon({ src, label }: { src: string; label: string }) {
@@ -267,16 +326,21 @@ export default function Home() {
   const yearMenuRef = useRef<HTMLDivElement | null>(null);
   const dataMenuRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const cloudSyncReadyRef = useRef(false);
+  const latestCheckinsByYearRef = useRef<Record<number, Checkins>>({});
   const yearOptions = useMemo(() => getYearOptions(actualYear), []);
   const checkins = checkinsByYear[viewYear] ?? {};
   const text = copy[language];
 
   useEffect(() => {
-    setCheckinsByYear(Object.fromEntries(yearOptions.map((year) => [year, loadCheckins(year)])));
+    const localCheckinsByYear = loadCheckinsByYear(yearOptions);
+    latestCheckinsByYearRef.current = localCheckinsByYear;
+    setCheckinsByYear(localCheckinsByYear);
     const storedLanguage = localStorage.getItem(languageStorageKey);
     const storedTheme = localStorage.getItem(themeStorageKey);
     if (storedLanguage === "en" || storedLanguage === "zh") setLanguage(storedLanguage);
     if (storedTheme === "light" || storedTheme === "dark") setTheme(storedTheme);
+    void loadCloudCheckins(localCheckinsByYear);
   }, [yearOptions]);
 
   useEffect(() => {
@@ -335,15 +399,54 @@ export default function Home() {
     return counts;
   }, [checkins]);
 
+  async function loadCloudCheckins(localCheckinsByYear: Record<number, Checkins>) {
+    try {
+      const response = await fetch("/api/checkins", { cache: "no-store" });
+      if (!response.ok) {
+        cloudSyncReadyRef.current = false;
+        return;
+      }
+      const payload = (await response.json()) as { checkinsByYear?: Record<string, Checkins> };
+      const remoteCheckinsByYear = normalizeCheckinsByYear(payload.checkinsByYear ?? {}, actualYear, todayIso);
+      const mergedCheckinsByYear = mergeCheckinsByYear(localCheckinsByYear, remoteCheckinsByYear);
+      latestCheckinsByYearRef.current = mergedCheckinsByYear;
+      persistCheckinsByYear(mergedCheckinsByYear);
+      setCheckinsByYear(mergedCheckinsByYear);
+      cloudSyncReadyRef.current = true;
+      void saveCloudCheckins(mergedCheckinsByYear);
+    } catch {
+      cloudSyncReadyRef.current = false;
+    }
+  }
+
+  async function saveCloudCheckins(nextCheckinsByYear: Record<number, Checkins>) {
+    if (!cloudSyncReadyRef.current) return;
+    try {
+      const response = await fetch("/api/checkins", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ checkinsByYear: nextCheckinsByYear }),
+      });
+      if (response.status === 401) {
+        cloudSyncReadyRef.current = false;
+      }
+    } catch {
+      // Keep local data as the source of truth until the next successful cloud load.
+    }
+  }
+
   function updateCheckins(updater: (current: Checkins) => Checkins) {
     setCheckinsByYear((current) => {
       const currentYearCheckins = current[viewYear] ?? loadCheckins(viewYear);
       const nextYearCheckins = updater(currentYearCheckins);
-      localStorage.setItem(getStorageKey(viewYear), JSON.stringify(nextYearCheckins));
-      return {
+      const nextCheckinsByYear = {
         ...current,
         [viewYear]: nextYearCheckins,
       };
+      localStorage.setItem(getStorageKey(viewYear), JSON.stringify(nextYearCheckins));
+      latestCheckinsByYearRef.current = nextCheckinsByYear;
+      void saveCloudCheckins(nextCheckinsByYear);
+      return nextCheckinsByYear;
     });
   }
 
@@ -429,6 +532,8 @@ export default function Home() {
           localStorage.setItem(getStorageKey(parsedYear), JSON.stringify(nextYearCheckins));
           next[parsedYear] = nextYearCheckins;
         });
+        latestCheckinsByYearRef.current = next;
+        void saveCloudCheckins(next);
         return next;
       });
       setOpenDate(null);
