@@ -205,32 +205,6 @@ function normalizeCheckinsByYear(input: Record<string | number, Checkins>, lates
   }, {});
 }
 
-function mergeCheckinsByYear(local: Record<number, Checkins>, remote: Record<number, Checkins>) {
-  const years = new Set([...Object.keys(local), ...Object.keys(remote)].map(Number));
-  const merged: Record<number, Checkins> = {};
-
-  years.forEach((year) => {
-    const dates = new Set([...Object.keys(local[year] ?? {}), ...Object.keys(remote[year] ?? {})]);
-    dates.forEach((date) => {
-      const localEntry = local[year]?.[date];
-      const remoteEntry = remote[year]?.[date];
-      const entry =
-        localEntry && remoteEntry
-          ? Date.parse(remoteEntry.checkedAt) > Date.parse(localEntry.checkedAt)
-            ? remoteEntry
-            : localEntry
-          : localEntry ?? remoteEntry;
-      if (!entry) return;
-      merged[year] = {
-        ...(merged[year] ?? {}),
-        [date]: entry,
-      };
-    });
-  });
-
-  return merged;
-}
-
 function MuscleIcon({ src, label }: { src: string; label: string }) {
   return <img className="muscle-icon" src={src} alt="" aria-hidden="true" draggable={false} data-label={label} />;
 }
@@ -350,7 +324,7 @@ export default function Home() {
     const storedTheme = localStorage.getItem(themeStorageKey);
     if (storedLanguage === "en" || storedLanguage === "zh") setLanguage(storedLanguage);
     if (storedTheme === "light" || storedTheme === "dark") setTheme(storedTheme);
-    void loadCloudCheckins(localCheckinsByYear);
+    void loadCloudCheckins();
   }, [yearOptions]);
 
   useEffect(() => {
@@ -409,7 +383,7 @@ export default function Home() {
     return counts;
   }, [checkins]);
 
-  async function loadCloudCheckins(localCheckinsByYear: Record<number, Checkins>) {
+  async function loadCloudCheckins() {
     try {
       setSyncStatus("loading");
       const response = await fetch("/api/checkins", { cache: "no-store", credentials: "include" });
@@ -420,13 +394,12 @@ export default function Home() {
       }
       const payload = (await response.json()) as { checkinsByYear?: Record<string, Checkins> };
       const remoteCheckinsByYear = normalizeCheckinsByYear(payload.checkinsByYear ?? {}, actualYear, todayIso);
-      const mergedCheckinsByYear = mergeCheckinsByYear(localCheckinsByYear, remoteCheckinsByYear);
-      latestCheckinsByYearRef.current = mergedCheckinsByYear;
-      persistCheckinsByYear(mergedCheckinsByYear);
-      setCheckinsByYear(mergedCheckinsByYear);
+      const cloudCheckinsByYear = Object.fromEntries(yearOptions.map((year) => [year, remoteCheckinsByYear[year] ?? {}])) as Record<number, Checkins>;
+      latestCheckinsByYearRef.current = cloudCheckinsByYear;
+      persistCheckinsByYear(cloudCheckinsByYear);
+      setCheckinsByYear(cloudCheckinsByYear);
       cloudSyncReadyRef.current = true;
       setSyncStatus("online");
-      void saveCloudCheckins(mergedCheckinsByYear);
     } catch {
       cloudSyncReadyRef.current = false;
       setSyncStatus("offline");
