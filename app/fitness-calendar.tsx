@@ -23,6 +23,7 @@ const groupMap = Object.fromEntries(muscleGroups.map((group) => [group.id, group
 
 type Language = "en" | "zh";
 type Theme = "light" | "dark";
+type SyncStatus = "loading" | "online" | "offline";
 
 const copy = {
   en: {
@@ -40,6 +41,9 @@ const copy = {
     delete: "Delete",
     alert: "Could not generate the image. Please try again.",
     importAlert: "Could not import the CSV file. Please check the format.",
+    syncLoading: "Syncing...",
+    syncOnline: "Synced",
+    syncOffline: "Local only",
     dateFilters: "Date filters",
     yearSelector: "Year selector",
     calendarActions: "Calendar actions",
@@ -76,6 +80,9 @@ const copy = {
     delete: "删除",
     alert: "图片生成失败，请重试。",
     importAlert: "CSV 导入失败，请检查文件格式。",
+    syncLoading: "同步中...",
+    syncOnline: "已同步",
+    syncOffline: "仅本地",
     dateFilters: "日期筛选",
     yearSelector: "年份选择",
     calendarActions: "日历操作",
@@ -322,6 +329,7 @@ export default function Home() {
   const [isDataMenuOpen, setIsDataMenuOpen] = useState(false);
   const [language, setLanguage] = useState<Language>("en");
   const [theme, setTheme] = useState<Theme>("light");
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>("loading");
   const captureRef = useRef<HTMLElement | null>(null);
   const yearMenuRef = useRef<HTMLDivElement | null>(null);
   const dataMenuRef = useRef<HTMLDivElement | null>(null);
@@ -401,9 +409,11 @@ export default function Home() {
 
   async function loadCloudCheckins(localCheckinsByYear: Record<number, Checkins>) {
     try {
-      const response = await fetch("/api/checkins", { cache: "no-store" });
+      setSyncStatus("loading");
+      const response = await fetch("/api/checkins", { cache: "no-store", credentials: "include" });
       if (!response.ok) {
         cloudSyncReadyRef.current = false;
+        setSyncStatus("offline");
         return;
       }
       const payload = (await response.json()) as { checkinsByYear?: Record<string, Checkins> };
@@ -413,9 +423,11 @@ export default function Home() {
       persistCheckinsByYear(mergedCheckinsByYear);
       setCheckinsByYear(mergedCheckinsByYear);
       cloudSyncReadyRef.current = true;
+      setSyncStatus("online");
       void saveCloudCheckins(mergedCheckinsByYear);
     } catch {
       cloudSyncReadyRef.current = false;
+      setSyncStatus("offline");
     }
   }
 
@@ -425,12 +437,17 @@ export default function Home() {
       const response = await fetch("/api/checkins", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ dates }),
       });
       if (response.status === 401) {
         cloudSyncReadyRef.current = false;
+        setSyncStatus("offline");
+      } else if (response.ok) {
+        setSyncStatus("online");
       }
     } catch {
+      setSyncStatus("offline");
       // Keep local data as the source of truth until the next successful cloud load.
     }
   }
@@ -438,18 +455,24 @@ export default function Home() {
   async function saveCloudCheckins(nextCheckinsByYear: Record<number, Checkins>, deletedDates: string[] = []) {
     if (!cloudSyncReadyRef.current) return;
     try {
+      setSyncStatus("loading");
       const response = await fetch("/api/checkins", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ checkinsByYear: nextCheckinsByYear }),
       });
       if (response.status === 401) {
         cloudSyncReadyRef.current = false;
+        setSyncStatus("offline");
+      } else if (response.ok) {
+        setSyncStatus("online");
       }
       if (response.ok && deletedDates.length) {
         await deleteCloudCheckins(deletedDates);
       }
     } catch {
+      setSyncStatus("offline");
       // Keep local data as the source of truth until the next successful cloud load.
     }
   }
@@ -672,6 +695,9 @@ export default function Home() {
           >
             <span aria-hidden="true">{theme === "light" ? "🌙" : "☀️"}</span>
           </button>
+          <span className={`sync-pill sync-${syncStatus}`}>
+            {text[syncStatus === "loading" ? "syncLoading" : syncStatus === "online" ? "syncOnline" : "syncOffline"]}
+          </span>
         </div>
       </section>
 
