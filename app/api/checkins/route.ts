@@ -133,22 +133,7 @@ export async function PUT(request: Request) {
   await ensureSchema();
 
   const db = getDb();
-  const existingDates = new Set(
-    (
-      (
-        await db
-          .prepare("SELECT date FROM workout_checkins WHERE user_id = ?")
-          .bind(user.userId)
-          .all<{ date: string }>()
-      ).results ?? []
-    ).map((row) => row.date),
-  );
-  const incomingDates = new Set(rows.map((row) => row.date));
-  const statements = [
-    ...[...existingDates]
-      .filter((date) => !incomingDates.has(date))
-      .map((date) => db.prepare("DELETE FROM workout_checkins WHERE user_id = ? AND date = ?").bind(user.userId, date)),
-    ...rows.map((row) =>
+  const statements = rows.map((row) =>
       db
         .prepare(`
           INSERT INTO workout_checkins (user_id, date, groups, checked_at, updated_at)
@@ -159,12 +144,33 @@ export async function PUT(request: Request) {
             updated_at = CURRENT_TIMESTAMP
         `)
         .bind(user.userId, row.date, row.groups, row.checkedAt),
-    ),
-  ];
+  );
 
   if (statements.length) {
     await db.batch(statements);
   }
 
   return Response.json({ ok: true, checkinsByYear: rowsToCheckinsByYear(rows.map((row) => ({ date: row.date, groups: row.groups, checked_at: row.checkedAt }))) });
+}
+
+export async function DELETE(request: Request) {
+  const user = await requireUser();
+  if (!user) {
+    return Response.json({ error: "Sign in with ChatGPT to sync data." }, { status: 401 });
+  }
+
+  const payload = (await request.json()) as { dates?: unknown };
+  const dates = Array.isArray(payload.dates)
+    ? payload.dates.filter((date): date is string => typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date))
+    : [];
+
+  if (!dates.length) {
+    return Response.json({ ok: true });
+  }
+
+  await ensureSchema();
+  const db = getDb();
+  await db.batch(dates.map((date) => db.prepare("DELETE FROM workout_checkins WHERE user_id = ? AND date = ?").bind(user.userId, date)));
+
+  return Response.json({ ok: true });
 }

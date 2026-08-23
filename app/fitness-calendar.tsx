@@ -419,7 +419,23 @@ export default function Home() {
     }
   }
 
-  async function saveCloudCheckins(nextCheckinsByYear: Record<number, Checkins>) {
+  async function deleteCloudCheckins(dates: string[]) {
+    if (!cloudSyncReadyRef.current || !dates.length) return;
+    try {
+      const response = await fetch("/api/checkins", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dates }),
+      });
+      if (response.status === 401) {
+        cloudSyncReadyRef.current = false;
+      }
+    } catch {
+      // Keep local data as the source of truth until the next successful cloud load.
+    }
+  }
+
+  async function saveCloudCheckins(nextCheckinsByYear: Record<number, Checkins>, deletedDates: string[] = []) {
     if (!cloudSyncReadyRef.current) return;
     try {
       const response = await fetch("/api/checkins", {
@@ -430,6 +446,9 @@ export default function Home() {
       if (response.status === 401) {
         cloudSyncReadyRef.current = false;
       }
+      if (response.ok && deletedDates.length) {
+        await deleteCloudCheckins(deletedDates);
+      }
     } catch {
       // Keep local data as the source of truth until the next successful cloud load.
     }
@@ -439,13 +458,14 @@ export default function Home() {
     setCheckinsByYear((current) => {
       const currentYearCheckins = current[viewYear] ?? loadCheckins(viewYear);
       const nextYearCheckins = updater(currentYearCheckins);
+      const deletedDates = Object.keys(currentYearCheckins).filter((date) => !nextYearCheckins[date]);
       const nextCheckinsByYear = {
         ...current,
         [viewYear]: nextYearCheckins,
       };
       localStorage.setItem(getStorageKey(viewYear), JSON.stringify(nextYearCheckins));
       latestCheckinsByYearRef.current = nextCheckinsByYear;
-      void saveCloudCheckins(nextCheckinsByYear);
+      void saveCloudCheckins(nextCheckinsByYear, deletedDates);
       return nextCheckinsByYear;
     });
   }
