@@ -658,6 +658,9 @@ export default function Home() {
           )}
         </div>
         <div className="toolbar-actions">
+          <button className="share-button" onClick={shareAsImage} disabled={isSharing}>
+            {isSharing ? text.generating : text.share}
+          </button>
           <button
             className="theme-toggle"
             onClick={() => {
@@ -682,9 +685,6 @@ export default function Home() {
               <span>{viewYear}</span>
               <span>{text.title}</span>
             </h1>
-            <button className="share-button hero-share-button" onClick={shareAsImage} disabled={isSharing}>
-              {isSharing ? text.generating : text.share}
-            </button>
           </div>
           <div className="stats-grid">
             <Stat
