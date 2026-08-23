@@ -45,6 +45,7 @@ const copy = {
     syncOnline: "Synced",
     syncOffline: "Local only",
     dateFilters: "Date filters",
+    settings: "Settings",
     yearSelector: "Year selector",
     calendarActions: "Calendar actions",
     categorySelection: "Workout category selection",
@@ -84,6 +85,7 @@ const copy = {
     syncOnline: "已同步",
     syncOffline: "仅本地",
     dateFilters: "日期筛选",
+    settings: "设置",
     yearSelector: "年份选择",
     calendarActions: "日历操作",
     categorySelection: "训练项目选择",
@@ -656,34 +658,6 @@ export default function Home() {
           )}
         </div>
         <div className="toolbar-actions">
-          <div className="data-menu" ref={dataMenuRef}>
-            <button className="utility-button" onClick={() => setIsDataMenuOpen((open) => !open)} aria-expanded={isDataMenuOpen}>
-              {text.importExport}
-            </button>
-            {isDataMenuOpen && (
-              <div className="data-menu-panel">
-                <button onClick={exportCsv}>{text.exportCsv}</button>
-                <button onClick={() => fileInputRef.current?.click()}>{text.importCsv}</button>
-              </div>
-            )}
-            <input
-              ref={fileInputRef}
-              className="file-input"
-              type="file"
-              accept=".csv,text/csv"
-              onChange={(event) => void importCsv(event.target.files?.[0])}
-            />
-          </div>
-          <button
-            className="utility-button"
-            onClick={() => {
-              const nextLanguage = language === "en" ? "zh" : "en";
-              setLanguage(nextLanguage);
-              localStorage.setItem(languageStorageKey, nextLanguage);
-            }}
-          >
-            {text.languageToggle}
-          </button>
           <button
             className="theme-toggle"
             onClick={() => {
@@ -881,6 +855,37 @@ export default function Home() {
           );
         })}
       </section>
+      </section>
+
+      <section className="footer-toolbar" aria-label={text.settings}>
+        <div className="data-menu" ref={dataMenuRef}>
+          <button className="utility-button" onClick={() => setIsDataMenuOpen((open) => !open)} aria-expanded={isDataMenuOpen}>
+            {text.importExport}
+          </button>
+          {isDataMenuOpen && (
+            <div className="data-menu-panel">
+              <button onClick={exportCsv}>{text.exportCsv}</button>
+              <button onClick={() => fileInputRef.current?.click()}>{text.importCsv}</button>
+            </div>
+          )}
+          <input
+            ref={fileInputRef}
+            className="file-input"
+            type="file"
+            accept=".csv,text/csv"
+            onChange={(event) => void importCsv(event.target.files?.[0])}
+          />
+        </div>
+        <button
+          className="utility-button"
+          onClick={() => {
+            const nextLanguage = language === "en" ? "zh" : "en";
+            setLanguage(nextLanguage);
+            localStorage.setItem(languageStorageKey, nextLanguage);
+          }}
+        >
+          {text.languageToggle}
+        </button>
       </section>
     </main>
   );
